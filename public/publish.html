@@ -39,7 +39,7 @@
       <div class="field-row">
         <label class="field">
           <span>日期</span>
-          <input type="date" name="date" required />
+          <input type="date" name="date" required readonly title="自动使用当天日期" />
         </label>
         <label class="field">
           <span>文章发布人</span>
@@ -75,7 +75,8 @@
     (function () {
       App.renderAuthUI();
       var form = document.getElementById("publish-form");
-      document.querySelector('input[name="date"]').valueAsDate = new Date();
+      var today = new Date().toISOString().slice(0, 10);
+      document.querySelector('input[name="date"]').value = today;
 
       var editId = new URLSearchParams(location.search).get("edit");
       if (editId) document.getElementById("form-title").textContent = "修改文章";
