@@ -304,18 +304,28 @@ async function syncDeleteArticleGitHub(id) {
 async function syncUsersToGitHub() {
   if (!githubSyncEnabled()) return;
   const repoPath = "data/users.json";
-  const content = Buffer.from(JSON.stringify(readUsers(), null, 2), "utf8").toString("base64");
-  try {
-    const sha = await getGitHubFileSha(repoPath);
-    await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
-      message: "chore: sync users.json",
-      content,
-      branch: GH_BRANCH,
-      ...(sha ? { sha } : {}),
-    });
-    console.log("[github] 已同步 users.json 到仓库");
-  } catch (e) {
-    console.error("[github] 同步 users.json 失败: " + e.message);
+  // 带冲突重试：free 套餐下每次同步都会触发重新部署，多个实例可能并发写同一文件，
+  // 出现 sha 冲突(422)时重新读取最新 sha 再写，最多重试 3 次，避免删除被覆盖。
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const content = Buffer.from(JSON.stringify(readUsers(), null, 2), "utf8").toString("base64");
+    try {
+      const sha = await getGitHubFileSha(repoPath);
+      await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
+        message: "chore: sync users.json",
+        content,
+        branch: GH_BRANCH,
+        ...(sha ? { sha } : {}),
+      });
+      console.log("[github] 已同步 users.json 到仓库");
+      return;
+    } catch (e) {
+      if (String(e.message).includes("does not match") && attempt < 2) {
+        console.warn("[github] users.json sha 冲突，重试 (" + (attempt + 1) + ")");
+        continue;
+      }
+      console.error("[github] 同步 users.json 失败: " + e.message);
+      return;
+    }
   }
 }
 
