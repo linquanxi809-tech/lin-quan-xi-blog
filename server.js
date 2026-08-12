@@ -299,6 +299,25 @@ async function syncDeleteArticleGitHub(id) {
     console.error("[github] 删除 GitHub 文章失败 " + id + ": " + e.message);
   }
 }
+// 将用户表（users.json）同步回 GitHub 仓库。free 套餐无持久磁盘，注册/注销后必须同步，
+// 否则下次重新部署时运行实例只加载仓库内的旧 users.json，新账号会丢失。
+async function syncUsersToGitHub() {
+  if (!githubSyncEnabled()) return;
+  const repoPath = "data/users.json";
+  const content = Buffer.from(JSON.stringify(readUsers(), null, 2), "utf8").toString("base64");
+  try {
+    const sha = await getGitHubFileSha(repoPath);
+    await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
+      message: "chore: sync users.json",
+      content,
+      branch: GH_BRANCH,
+      ...(sha ? { sha } : {}),
+    });
+    console.log("[github] 已同步 users.json 到仓库");
+  } catch (e) {
+    console.error("[github] 同步 users.json 失败: " + e.message);
+  }
+}
 
 // ---------- 静态文件 ----------
 const MIME = {
@@ -370,6 +389,7 @@ async function handleApi(req, res, url) {
     };
     users.push(user);
     writeUsers(users);
+    syncUsersToGitHub(); // 注册新账号后同步到 GitHub，避免重部署后丢失
     const sid = createSession(user.id);
     setCookie(res, "sid", sid, SESSION_TTL / 1000);
     return sendJSON(res, 200, { ok: true, user: { username } });
@@ -413,6 +433,7 @@ async function handleApi(req, res, url) {
     // 从用户表移除账号
     const users = readUsers().filter((x) => x.id !== u.id);
     writeUsers(users);
+    syncUsersToGitHub(); // 注销后同步到 GitHub，避免重部署后账号复活
     // 清除会话与 cookie
     const cookies = parseCookies(req);
     if (cookies.sid) sessions.delete(cookies.sid);
