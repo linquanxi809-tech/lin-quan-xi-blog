@@ -12,12 +12,5 @@
     "salt": "14acfa9f650187af0989deaa0400c2c9",
     "hash": "663c39d88c976ca612fc6635d65b63b13cf1e0ff21c42d24349812881a65bb9714d07ccc39bcdb4a1114595861fea63b459d770aef4d4d039f168c114f7a9193",
     "createdAt": "2026-08-12T15:28:26.404Z"
-  },
-  {
-    "id": "msq9aoouzlctm7",
-    "username": "同步校验2026",
-    "salt": "40cadcce31c2b4cbf46668d17b19fcd1",
-    "hash": "cf4f62cfdf24fd36d63de4eefe23f0689750ae551a4ad1b5ea83ac38018aa79db5397691de1de4aad647202a6c0f5d1fb7e862d2a33da0d425af77595254cb11",
-    "createdAt": "2026-08-12T15:40:51.417Z"
   }
 ]
