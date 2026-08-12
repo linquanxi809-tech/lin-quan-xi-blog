@@ -12,12 +12,5 @@
     "salt": "14acfa9f650187af0989deaa0400c2c9",
     "hash": "663c39d88c976ca612fc6635d65b63b13cf1e0ff21c42d24349812881a65bb9714d07ccc39bcdb4a1114595861fea63b459d770aef4d4d039f168c114f7a9193",
     "createdAt": "2026-08-12T15:28:26.404Z"
-  },
-  {
-    "id": "msq9l91scusen7",
-    "username": "终验账号",
-    "salt": "317fccc8c3cb7c6328ee992c05ad795f",
-    "hash": "d4cb5de08d28864bbe8f5d48a742dd95dae849c9e82d62968fbeb3a3f494696e573e56bf9ab66255ef53dce0e4a2d83526cc8a0255683b59d84144946aee3575",
-    "createdAt": "2026-08-12T15:49:04.412Z"
   }
 ]
