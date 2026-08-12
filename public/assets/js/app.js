@@ -40,8 +40,32 @@ const App = (function () {
       const { user } = await api("/api/me");
       if (user) {
         area.innerHTML =
-          '<span class="auth-user">👤 ' + escapeHtml(user.username) + "</span>" +
-          '<a class="auth-link" href="#" id="logout-btn">退出</a>';
+          '<div class="user-dropdown" id="user-dropdown">' +
+            '<button class="user-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
+              '<span class="auth-user">👤 ' + escapeHtml(user.username) + '</span>' +
+              '<span class="user-caret">▾</span>' +
+            '</button>' +
+            '<div class="user-menu" id="user-menu">' +
+              '<a href="#" id="logout-btn">注销用户</a>' +
+            '</div>' +
+          '</div>';
+        const dropdown = document.getElementById("user-dropdown");
+        const trigger = dropdown.querySelector(".user-trigger");
+        const menu = document.getElementById("user-menu");
+        function toggleMenu() {
+          const open = menu.classList.toggle("show");
+          trigger.setAttribute("aria-expanded", String(open));
+        }
+        trigger.addEventListener("click", function (e) {
+          e.stopPropagation();
+          toggleMenu();
+        });
+        document.addEventListener("click", function (e) {
+          if (!dropdown.contains(e.target)) {
+            menu.classList.remove("show");
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        });
         const lb = document.getElementById("logout-btn");
         if (lb)
           lb.addEventListener("click", function (e) {
