@@ -14,13 +14,6 @@
     "createdAt": "2026-08-12T15:28:26.404Z"
   },
   {
-    "id": "msq92ur4ep3vwp",
-    "username": "验证测试账号",
-    "salt": "7a8005484f0fcdf122772875822a9dc1",
-    "hash": "818ba283f64158181c227af612dfc80805fd69da189fc96d43e0cb68db612555026219abbccfa3d919635c71da553f7456c442d984abfc8c211f6b36b925d9b7",
-    "createdAt": "2026-08-12T15:34:46.034Z"
-  },
-  {
     "id": "msq9aoouzlctm7",
     "username": "同步校验2026",
     "salt": "40cadcce31c2b4cbf46668d17b19fcd1",
