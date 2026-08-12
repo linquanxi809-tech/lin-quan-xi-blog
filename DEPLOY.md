@@ -134,3 +134,19 @@ services:
 ⚠️ **安全提示**：`GH_TOKEN` 与 Render API Key 都是高权限凭证。本项目演示中曾由 AI
 临时使用，部署完成后请到 GitHub（Settings → Developer settings → PAT）与 Render
 （Account Settings → API Keys）将其吊销/轮换，不要长期留存。
+
+---
+
+## 7. 自动部署已配置（GitHub Actions）
+
+每次 `git push` 到 `main` 分支，GitHub Actions 会自动调用 Render API 触发部署，
+无需手动操作。相关配置：
+
+- **Workflow 文件**：`.github/workflows/deploy-render.yml`
+- **仓库 Secrets**（仓库 Settings → Secrets and variables → Actions，已配置）：
+  - `RENDER_API_KEY`：Render API Key（`rnd_xxx`）
+  - `RENDER_SERVICE_ID`：Render 服务 ID（如 `srv-xxx`）
+- 验证方法：push 后到仓库 **Actions** 标签页看 `Deploy to Render` 是否变绿；
+  再到 Render 控制台看是否出现新的 `live` 部署。
+- 若想手动触发：Render 控制台 → 服务 → **Manual Deploy → Deploy latest commit**，
+  或用 API：`POST https://api.render.com/v1/services/<serviceId>/deploys`（Bearer Key）。
