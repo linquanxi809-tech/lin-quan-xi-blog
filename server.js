@@ -416,9 +416,8 @@ async function handleApi(req, res, url) {
         title,
         tag: String(body.tag || "生活"),
         date: String(body.date || new Date().toISOString().slice(0, 10)),
-        readTime: String(body.readTime || "约 3 分钟"),
         content,
-        author: u.username,
+        author: String(body.author || u.username),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -452,7 +451,7 @@ async function handleApi(req, res, url) {
         title: String(body.title || existing.title),
         tag: String(body.tag || existing.tag),
         date: String(body.date || existing.date),
-        readTime: String(body.readTime || existing.readTime),
+        author: String(body.author || existing.author),
         content: String(body.content || existing.content),
         updatedAt: new Date().toISOString(),
       };

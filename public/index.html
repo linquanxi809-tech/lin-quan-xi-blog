@@ -71,7 +71,7 @@
                 '<span class="tag ' + App.tagClass(a.tag) + '">' + App.escapeHtml(a.tag) + "</span>" +
                 '<h3><a href="article.html?id=' + encodeURIComponent(a.id) + '">' + App.escapeHtml(a.title) + "</a></h3>" +
                 "<p>" + App.escapeHtml(a.excerpt) + "</p>" +
-                '<div class="meta"><span>📅 ' + App.escapeHtml(a.date) + "</span><span>⏱ " + App.escapeHtml(a.readTime) + "</span></div>" +
+                '<div class="meta"><span>📅 ' + App.escapeHtml(a.date) + "</span><span>✍️ " + App.escapeHtml(a.author || "匿名") + "</span></div>" +
                 "</article>"
               );
             })

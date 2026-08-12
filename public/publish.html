@@ -48,8 +48,8 @@
           <input type="date" name="date" required />
         </label>
         <label class="field">
-          <span>预计阅读时间</span>
-          <input type="text" name="readTime" placeholder="约 3 分钟" value="约 3 分钟" />
+          <span>文章发布人</span>
+          <input type="text" name="author" placeholder="请输入你的名字" />
         </label>
       </div>
 
@@ -101,7 +101,7 @@
                 form.title.value = a.title;
                 if (form.tag.querySelector('option[value="' + a.tag + '"]')) form.tag.value = a.tag;
                 form.date.value = a.date;
-                form.readTime.value = a.readTime;
+                form.author.value = a.author || "";
                 var clone = document.createElement("div");
                 clone.innerHTML = a.content;
                 form.content.value = App.htmlToText(clone);
@@ -121,7 +121,7 @@
           title: form.title.value.trim(),
           tag: form.tag.value,
           date: form.date.value,
-          readTime: form.readTime.value.trim() || "约 3 分钟",
+          author: form.author.value.trim(),
           content: form.content.value,
         };
         var method = editId ? "PUT" : "POST";
