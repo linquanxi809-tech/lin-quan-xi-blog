@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>注册 · 林泉汐</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section wrap">
+    <div class="section-head reveal">
+      <h2><span class="emoji">📝</span> 注册新账号</h2>
+    </div>
+    <form class="editor reveal" id="register-form" style="max-width:460px">
+      <label class="field">
+        <span>用户名</span>
+        <input type="text" name="username" placeholder="至少 2 个字符" required />
+      </label>
+      <label class="field" style="margin-top:16px">
+        <span>密码</span>
+        <input type="password" name="password" placeholder="至少 6 位" required />
+      </label>
+      <div class="actions" style="margin-top:20px">
+        <button type="submit" class="btn btn-primary">注册并登录</button>
+        <a class="btn btn-ghost" href="login.html">已有账号？登录</a>
+      </div>
+      <div class="hint" id="msg"></div>
+    </form>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.renderAuthUI();
+      var form = document.getElementById("register-form");
+      var msg = document.getElementById("msg");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        msg.textContent = "";
+        App.api("/api/register", {
+          method: "POST",
+          body: { username: form.username.value.trim(), password: form.password.value },
+        })
+          .then(function () {
+            location.href = "index.html";
+          })
+          .catch(function (err) {
+            msg.textContent = "注册失败：" + err.message;
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

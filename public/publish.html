@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>发布文章 · 林泉汐</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section wrap">
+    <div class="section-head reveal">
+      <h2><span class="emoji">✍️</span> <span id="form-title">发布新文章</span></h2>
+    </div>
+
+    <form class="editor reveal" id="publish-form">
+      <div class="field-row">
+        <label class="field" style="flex:2">
+          <span>标题</span>
+          <input type="text" name="title" placeholder="给你的文章起个名字" required />
+        </label>
+        <label class="field">
+          <span>标签</span>
+          <select name="tag">
+            <option value="生活">生活</option>
+            <option value="学习">学习</option>
+            <option value="随笔">随笔</option>
+            <option value="技术">技术</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>日期</span>
+          <input type="date" name="date" required />
+        </label>
+        <label class="field">
+          <span>预计阅读时间</span>
+          <input type="text" name="readTime" placeholder="约 3 分钟" value="约 3 分钟" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>正文</span>
+        <textarea name="content" rows="14" placeholder="直接写正文。空行会自动分段，以“- ”开头的行会变成列表项。" required></textarea>
+      </label>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="submit-btn">🚀 发布文章</button>
+        <a class="btn btn-ghost" href="index.html">取消</a>
+      </div>
+
+      <div class="hint">
+        提示：文章会直接保存到服务器（无需手动搬运文件）。修改已有文章时，这里会自动载入原文。
+      </div>
+    </form>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.renderAuthUI();
+      var form = document.getElementById("publish-form");
+      document.querySelector('input[name="date"]').valueAsDate = new Date();
+
+      var editId = new URLSearchParams(location.search).get("edit");
+      if (editId) document.getElementById("form-title").textContent = "修改文章";
+      if (editId) document.getElementById("submit-btn").textContent = "💾 保存修改";
+
+      // 未登录直接跳登录
+      App.api("/api/me")
+        .then(function (me) {
+          if (!me.user) {
+            location.href = "login.html?next=" + encodeURIComponent(location.pathname + location.search);
+            return;
+          }
+          if (editId) {
+            App.api("/api/articles/" + encodeURIComponent(editId))
+              .then(function (data) {
+                var a = data.article;
+                form.title.value = a.title;
+                if (form.tag.querySelector('option[value="' + a.tag + '"]')) form.tag.value = a.tag;
+                form.date.value = a.date;
+                form.readTime.value = a.readTime;
+                var clone = document.createElement("div");
+                clone.innerHTML = a.content;
+                form.content.value = App.htmlToText(clone);
+              })
+              .catch(function (err) {
+                alert("载入原文失败：" + err.message);
+              });
+          }
+        })
+        .catch(function () {
+          location.href = "login.html";
+        });
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var payload = {
+          title: form.title.value.trim(),
+          tag: form.tag.value,
+          date: form.date.value,
+          readTime: form.readTime.value.trim() || "约 3 分钟",
+          content: form.content.value,
+        };
+        var method = editId ? "PUT" : "POST";
+        var url = editId ? "/api/articles/" + encodeURIComponent(editId) : "/api/articles";
+        App.api(url, { method: method, body: payload })
+          .then(function () {
+            alert(editId ? "修改已保存" : "发布成功");
+            location.href = editId ? "article.html?id=" + encodeURIComponent(editId) : "index.html";
+          })
+          .catch(function (err) {
+            alert("保存失败：" + err.message);
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

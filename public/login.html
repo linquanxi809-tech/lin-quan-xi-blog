@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 · 林泉汐</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section wrap">
+    <div class="section-head reveal">
+      <h2><span class="emoji">🔑</span> 登录</h2>
+    </div>
+    <form class="editor reveal" id="login-form" style="max-width:460px">
+      <label class="field">
+        <span>用户名</span>
+        <input type="text" name="username" placeholder="你的用户名" required />
+      </label>
+      <label class="field" style="margin-top:16px">
+        <span>密码</span>
+        <input type="password" name="password" placeholder="至少 6 位" required />
+      </label>
+      <div class="actions" style="margin-top:20px">
+        <button type="submit" class="btn btn-primary">登录</button>
+        <a class="btn btn-ghost" href="register.html">还没有账号？注册</a>
+      </div>
+      <div class="hint" id="msg"></div>
+    </form>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.renderAuthUI();
+      var form = document.getElementById("login-form");
+      var msg = document.getElementById("msg");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        msg.textContent = "";
+        App.api("/api/login", {
+          method: "POST",
+          body: { username: form.username.value.trim(), password: form.password.value },
+        })
+          .then(function () {
+            var next = new URLSearchParams(location.search).get("next") || "index.html";
+            location.href = next;
+          })
+          .catch(function (err) {
+            msg.textContent = "登录失败：" + err.message;
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

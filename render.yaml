@@ -1,0 +1,14 @@
+# Render 部署配置（Blueprint）
+# 在 Render 控制台：New → Blueprint → 连接本仓库即可自动读取此文件
+services:
+  - type: web
+    name: lin-quan-xi-blog
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production

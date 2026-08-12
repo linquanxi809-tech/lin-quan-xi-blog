@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>为什么我选择了纯静态网站 · 林泉汐</title>
+  <meta name="description" content="在花里胡哨的框架之外，纯静态站其实有着让人安心的简单。" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="../index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="../publish.html">✍️ 发布</a>
+        <a href="../index.html">首页</a>
+        <a href="../archive.html">文章</a>
+        <a href="../about.html">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="wrap">
+    <article class="post reveal">
+      <div class="post-meta">
+        <span>🏷️ 学习</span>
+        <span>📅 2026-08-10</span>
+        <span>⏱ 约 5 分钟</span>
+      </div>
+      <h1>为什么我选择了纯静态网站</h1>
+
+      <p>前阵子纠结要不要上框架：React？Next.js？Astro？翻了一圈，最后还是回到最朴素的那一套——纯静态的 HTML、CSS、JS。</p>
+
+      <h2>简单，是一种奢侈</h2>
+      <p>框架很强大，但强大往往意味着复杂。而很多时候，我们根本用不上那些复杂。</p>
+      <ul>
+        <li>没有 <code>npm install</code> 等半天的焦虑；</li>
+        <li>没有版本升级把整个项目搞崩的风险；</li>
+        <li>没有「构建失败」这种玄学问题。</li>
+      </ul>
+
+      <h2>它对「长期」友好</h2>
+      <p>一个纯静态站点，十年后大概率还能打开。它不依赖任何会停服的服务，也不依赖某个特定版本的运行时。这种确定性，在「我想留点东西下来」这件事上，特别重要。</p>
+
+      <blockquote>能跑十年的东西，比能跑十分钟但很酷的东西，更值得托付。</blockquote>
+
+      <h2>当然，它也有边界</h2>
+      <p>纯静态不适合需要实时交互、用户登录、动态数据的场景。但对我这种「写写文章、记记想法」的需求来说，它刚好。</p>
+      <p>所以结论是：先想清楚自己要什么，再决定用什么。工具是为人服务的，不是反过来。</p>
+
+      <div class="post-actions">
+        <a class="btn btn-ghost" href="../publish.html?edit=posts/why-static.html">✏️ 修改</a>
+        <button class="btn btn-danger" data-delete="posts/why-static.html" data-title="为什么我选择了纯静态网站">🗑 删除</button>
+      </div>
+      <a class="back-link" href="../archive.html">← 回到文章列表</a>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="social">
+        <span>✉️</span><span>🐙</span><span>🐦</span><span>📡</span>
+      </div>
+      <p>© <span id="year">2026</span> 小站 · 用 ❤️ 和静态文件搭建</p>
+    </div>
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/post-actions.js"></script>
+</body>
+</html>

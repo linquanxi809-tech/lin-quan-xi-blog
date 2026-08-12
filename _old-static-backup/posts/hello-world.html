@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>你好，世界：我的第一篇文章 · 林泉汐</title>
+  <meta name="description" content="用纯静态技术从零搭起这个小站。" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="../index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="../publish.html">✍️ 发布</a>
+        <a href="../index.html">首页</a>
+        <a href="../archive.html">文章</a>
+        <a href="../about.html">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="wrap">
+    <article class="post reveal">
+      <div class="post-meta">
+        <span>🏷️ 生活</span>
+        <span>📅 2026-08-12</span>
+        <span>⏱ 约 3 分钟</span>
+      </div>
+      <h1>你好，世界：我的第一篇文章</h1>
+
+      <p>很多人写博客的第一篇都是「你好，世界」。我也没能免俗——毕竟，从这里开始最踏实。</p>
+
+      <h2>为什么又搭了一个站</h2>
+      <p>市面上的平台很多，但总觉得自己的一块地更自在。想写什么写什么，想长什么样就调成什么样，不用被算法推荐牵着走。</p>
+
+      <blockquote>拥有的感觉，比被推荐重要。</blockquote>
+
+      <h2>这个站是怎么搭的</h2>
+      <p>其实特别朴素：</p>
+      <ul>
+        <li><strong>HTML</strong> 负责结构，几个页面就够；</li>
+        <li><strong>CSS</strong> 负责好看，用了明亮渐变和圆角；</li>
+        <li><strong>一点点 JS</strong> 做滚动动画，让页面不那么死板。</li>
+      </ul>
+      <p>没有框架、没有数据库、没有构建步骤。双击 <code>index.html</code> 就能打开，搬到任何地方都能跑。</p>
+
+      <h2>接下来</h2>
+      <p>我会把这里当成一个长期的角落：读完的书、学到的东西、偶尔冒出来的想法，都会慢慢放进来。如果你碰巧读到，希望它让你会心一笑。</p>
+
+      <div class="post-actions">
+        <a class="btn btn-ghost" href="../publish.html?edit=posts/hello-world.html">✏️ 修改</a>
+        <button class="btn btn-danger" data-delete="posts/hello-world.html" data-title="你好，世界：我的第一篇文章">🗑 删除</button>
+      </div>
+      <a class="back-link" href="../archive.html">← 回到文章列表</a>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="social">
+        <span>✉️</span><span>🐙</span><span>🐦</span><span>📡</span>
+      </div>
+      <p>© <span id="year">2026</span> 小站 · 用 ❤️ 和静态文件搭建</p>
+    </div>
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/post-actions.js"></script>
+</body>
+</html>

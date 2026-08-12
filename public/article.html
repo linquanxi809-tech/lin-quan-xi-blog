@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文章 · 林泉汐</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="wrap">
+    <article class="post reveal" id="post">
+      <p style="color:var(--ink-soft)">正在加载…</p>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.renderAuthUI();
+      var id = new URLSearchParams(location.search).get("id");
+      var postEl = document.getElementById("post");
+
+      if (!id) {
+        postEl.innerHTML = '<div class="empty"><div class="big">🤔</div>没有指定文章。</div>';
+        return;
+      }
+
+      App.api("/api/articles/" + encodeURIComponent(id))
+        .then(function (data) {
+          var a = data.article;
+          postEl.innerHTML =
+            '<div class="post-meta">' +
+            "<span>🏷️ " + App.escapeHtml(a.tag) + "</span>" +
+            "<span>📅 " + App.escapeHtml(a.date) + "</span>" +
+            "<span>⏱ " + App.escapeHtml(a.readTime) + "</span>" +
+            (a.author ? "<span>✍️ " + App.escapeHtml(a.author) + "</span>" : "") +
+            "</div>" +
+            "<h1>" + App.escapeHtml(a.title) + "</h1>" +
+            a.content +
+            '<div class="post-actions" id="post-actions" style="display:none">' +
+            '<a class="btn btn-ghost" href="publish.html?edit=' + encodeURIComponent(a.id) + '">✏️ 修改</a>' +
+            '<button class="btn btn-danger" id="delete-btn">🗑 删除</button>' +
+            "</div>" +
+            '<a class="back-link" href="index.html">← 回到文章列表</a>';
+
+          // 登录后才显示管理按钮
+          App.api("/api/me").then(function (me) {
+            if (me.user) {
+              document.getElementById("post-actions").style.display = "flex";
+              var del = document.getElementById("delete-btn");
+              del.addEventListener("click", function () {
+                if (!confirm("确定要删除《" + a.title + "》吗？")) return;
+                App.api("/api/articles/" + encodeURIComponent(a.id), { method: "DELETE" })
+                  .then(function () {
+                    alert("已删除");
+                    location.href = "index.html";
+                  })
+                  .catch(function (err) {
+                    alert("删除失败：" + err.message);
+                  });
+              });
+            }
+          });
+        })
+        .catch(function (err) {
+          postEl.innerHTML =
+            '<div class="empty"><div class="big">😢</div>' + App.escapeHtml(err.message) + "</div>";
+        });
+    })();
+  </script>
+</body>
+</html>

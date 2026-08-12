@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>发布文章 · 林泉汐</title>
+  <meta name="description" content="为小站生成一篇新文章。" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="archive.html">文章</a>
+        <a href="about.html">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section wrap">
+    <div class="section-head reveal">
+      <h2><span class="emoji">✍️</span> 发布新文章</h2>
+    </div>
+
+    <form class="editor reveal" id="publish-form">
+      <div class="field-row">
+        <label class="field" style="flex:2">
+          <span>标题</span>
+          <input type="text" name="title" placeholder="给你的文章起个名字" required />
+        </label>
+        <label class="field">
+          <span>标签</span>
+          <select name="tag">
+            <option value="生活">生活</option>
+            <option value="学习">学习</option>
+            <option value="随笔">随笔</option>
+            <option value="技术">技术</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>日期</span>
+          <input type="date" name="date" required />
+        </label>
+        <label class="field">
+          <span>预计阅读时间</span>
+          <input type="text" name="readTime" placeholder="约 3 分钟" value="约 3 分钟" />
+        </label>
+        <label class="field" style="flex:2">
+          <span>文件名（英文）</span>
+          <input type="text" name="slug" placeholder="my-first-post" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>正文</span>
+        <textarea name="content" rows="14" placeholder="直接写正文。空行会自动分段，以“- ”开头的行会变成列表项。" required></textarea>
+      </label>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">🚀 生成并下载文章</button>
+        <button type="button" class="btn btn-ghost" id="preview-toggle">👁 预览效果</button>
+      </div>
+
+      <div class="hint">
+        提示：下载后把 .html 文件放进 <code>posts/</code> 文件夹，再手动把标题和日期加到 <code>index.html</code> 与 <code>archive.html</code> 的文章列表里即可。
+      </div>
+    </form>
+
+    <div class="post preview-post" id="preview" style="display:none">
+      <h2>预览</h2>
+      <div id="preview-body"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 小站 · 用 ❤️ 和静态文件搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    (function () {
+      document.querySelector('input[name="date"]').valueAsDate = new Date();
+
+      function htmlToText(el) {
+        var out = [];
+        el.childNodes.forEach(function (node) {
+          if (node.nodeType === 3) {
+            var t = node.textContent.trim();
+            if (t) out.push(t);
+          } else if (node.nodeType === 1) {
+            var tag = node.tagName.toLowerCase();
+            if (tag === 'p') {
+              out.push(node.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
+            } else if (tag === 'ul' || tag === 'ol') {
+              node.querySelectorAll('li').forEach(function (li) {
+                out.push('- ' + li.textContent.trim());
+              });
+            } else if (tag === 'blockquote') {
+              out.push('> ' + node.textContent.trim());
+            } else if (tag === 'h2' || tag === 'h3') {
+              out.push(node.textContent.trim());
+            } else {
+              out.push(node.textContent.trim());
+            }
+          }
+        });
+        return out.filter(Boolean).join('\n\n');
+      }
+
+      // 支持 ?edit=posts/xxx.html 时自动载入原文
+      var params = new URLSearchParams(location.search);
+      var editFile = params.get('edit');
+      if (editFile) {
+        fetch(editFile).then(function (r) { return r.text(); }).then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var post = doc.querySelector('.post');
+          if (!post) return;
+          var h1 = post.querySelector('h1');
+          var meta = post.querySelector('.post-meta');
+          var spans = meta ? meta.querySelectorAll('span') : [];
+          var tag = spans[0] ? spans[0].textContent.replace('🏷️', '').trim() : '生活';
+          var date = spans[1] ? spans[1].textContent.replace('📅', '').trim() : '';
+          var time = spans[2] ? spans[2].textContent.replace('⏱', '').trim() : '约 3 分钟';
+          var clone = post.cloneNode(true);
+          ['.post-meta', '.back-link', '.post-actions'].forEach(function (sel) {
+            var n = clone.querySelector(sel); if (n) n.remove();
+          });
+          var h1c = clone.querySelector('h1'); if (h1c) h1c.remove();
+          form.title.value = h1 ? h1.textContent.trim() : '';
+          if (form.tag.querySelector('option[value="' + tag + '"]')) form.tag.value = tag;
+          form.date.value = date;
+          form.readTime.value = time;
+          form.content.value = htmlToText(clone);
+          form.slug.value = editFile.replace(/^.*\//, '').replace(/\.html$/, '');
+        }).catch(function () {
+          alert('加载原文章失败。若你是直接双击打开(file://)，浏览器会拦截读取，请用本地服务器或托管后访问。');
+        });
+      }
+
+      function tagClass(tag) {
+        if (tag === '生活') return 'tag-pink';
+        if (tag === '学习') return 'tag-blue';
+        if (tag === '随笔') return 'tag-green';
+        if (tag === '技术') return 'tag-yellow';
+        return 'tag-pink';
+      }
+
+      function textToHtml(text) {
+        return text.split(/\n\s*\n/).map(function (block) {
+          block = block.trim();
+          if (!block) return '';
+          var lines = block.split('\n').map(function (l) { return l.trim(); });
+          if (lines.every(function (l) { return l.startsWith('- '); })) {
+            var items = lines.map(function (l) { return '        <li>' + l.slice(2) + '</li>'; }).join('\n');
+            return '      <ul>\n' + items + '\n      </ul>\n';
+          }
+          var p = block.replace(/\n/g, '<br>\n');
+          return '      <p>' + p + '</p>\n';
+        }).join('');
+      }
+
+      function slugify(title) {
+        return title.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '-').replace(/^-+|-+$/g, '').substring(0, 40) || 'post';
+      }
+
+      function buildPostHtml(data) {
+        var filename = (data.slug || slugify(data.title)) + '.html';
+        var editPath = 'posts/' + filename;
+        var html =
+'<!DOCTYPE html>\n' +
+'<html lang="zh-CN">\n' +
+'<head>\n' +
+'  <meta charset="UTF-8" />\n' +
+'  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n' +
+'  <title>' + data.title + ' · 小站</title>\n' +
+'  <meta name="description" content="' + data.title.replace(/"/g, '\\"') + '" />\n' +
+'  <link rel="stylesheet" href="../assets/css/style.css" />\n' +
+'</head>\n' +
+'<body>\n' +
+'  <header class="nav">\n' +
+'    <div class="wrap nav-inner">\n' +
+'      <a class="brand" href="../index.html"><span class="dot"></span>小站</a>\n' +
+'      <nav class="nav-links">\n' +
+'        <a class="nav-btn" href="../publish.html">✍️ 发布</a>\n' +
+'        <a href="../index.html">首页</a>\n' +
+'        <a href="../archive.html">文章</a>\n' +
+'        <a href="../about.html">关于</a>\n' +
+'      </nav>\n' +
+'    </div>\n' +
+'  </header>\n' +
+'\n' +
+'  <section class="wrap">\n' +
+'    <article class="post reveal">\n' +
+'      <div class="post-meta">\n' +
+'        <span>🏷️ ' + data.tag + '</span>\n' +
+'        <span>📅 ' + data.date + '</span>\n' +
+'        <span>⏱ ' + data.readTime + '</span>\n' +
+'      </div>\n' +
+'      <h1>' + data.title + '</h1>\n' +
+'\n' +
+        textToHtml(data.content) +
+'\n' +
+'      <div class="post-actions">\n' +
+'        <a class="btn btn-ghost" href="../publish.html?edit=' + editPath + '">✏️ 修改</a>\n' +
+'        <button class="btn btn-danger" data-delete="' + editPath + '" data-title="' + data.title.replace(/"/g, '\\"') + '">🗑 删除</button>\n' +
+'      </div>\n' +
+'      <a class="back-link" href="../archive.html">← 回到文章列表</a>\n' +
+'    </article>\n' +
+'  </section>\n' +
+'\n' +
+'  <footer class="footer">\n' +
+'    <div class="wrap">\n' +
+'      <div class="social">\n' +
+'        <span>✉️</span><span>🐙</span><span>🐦</span><span>📡</span>\n' +
+'      </div>\n' +
+'      <p>© <span id="year">2026</span> 小站 · 用 ❤️ 和静态文件搭建</p>\n' +
+'    </div>\n' +
+'  </footer>\n' +
+'\n' +
+'  <script src="../assets/js/main.js"><\/script>\n' +
+'  <script src="../assets/js/post-actions.js"><\/script>\n' +
+'</body>\n' +
+'</html>\n';
+        return { filename: filename, html: html };
+      }
+
+      var form = document.getElementById('publish-form');
+      var preview = document.getElementById('preview');
+      var previewBody = document.getElementById('preview-body');
+
+      document.getElementById('preview-toggle').addEventListener('click', function () {
+        var fd = new FormData(form);
+        var data = Object.fromEntries(fd.entries());
+        previewBody.innerHTML =
+          '<div class="post-meta"><span>🏷️ ' + data.tag + '</span><span>📅 ' + data.date + '</span><span>⏱ ' + data.readTime + '</span></div>' +
+          '<h1>' + data.title + '</h1>' +
+          textToHtml(data.content);
+        preview.style.display = preview.style.display === 'none' ? 'block' : 'none';
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var fd = new FormData(form);
+        var data = Object.fromEntries(fd.entries());
+        var result = buildPostHtml(data);
+        var blob = new Blob([result.html], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = result.filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</body>
+</html>
