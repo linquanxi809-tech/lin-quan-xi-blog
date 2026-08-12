@@ -12,6 +12,7 @@
  */
 
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -212,6 +213,93 @@ function newId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+// ---------- 自动同步到 GitHub 仓库（方案②：free 套餐无持久磁盘时的持久化方案）----------
+// 仅当设置了 GH_TOKEN 环境变量时才启用；未设置则完全不触发网络请求，行为与之前一致。
+// 原理：文章以 data/articles/<id>.json 形式提交进仓库，Render 重新部署时会从仓库重新
+// 拉取，因此「推到 GitHub = 持久化」，实例重启/休眠/重部署都不会丢文章。
+const GH_TOKEN = process.env.GH_TOKEN || "";
+const GH_REPO = process.env.GH_REPO || "linquanxi809-tech/lin-quan-xi-blog";
+const GH_BRANCH = process.env.GH_BRANCH || "main";
+function githubSyncEnabled() {
+  return !!GH_TOKEN;
+}
+function ghApiRequest(method, apiPath, bodyObj) {
+  return new Promise((resolve, reject) => {
+    const data = bodyObj ? JSON.stringify(bodyObj) : null;
+    const req = https.request(
+      {
+        hostname: "api.github.com",
+        path: apiPath,
+        method,
+        headers: {
+          Authorization: "Bearer " + GH_TOKEN,
+          Accept: "application/vnd.github+json",
+          "User-Agent": "lin-quan-xi-blog",
+          "Content-Type": "application/json",
+        },
+      },
+      (resp) => {
+        let buf = "";
+        resp.on("data", (c) => (buf += c));
+        resp.on("end", () => {
+          let json = null;
+          try {
+            json = JSON.parse(buf);
+          } catch {}
+          if (resp.statusCode >= 200 && resp.statusCode < 300) resolve(json);
+          else reject(new Error("GitHub " + resp.statusCode + ": " + (json && json.message)));
+        });
+      }
+    );
+    req.on("error", reject);
+    req.setTimeout(8000, () => req.destroy(new Error("GitHub 请求超时")));
+    if (data) req.write(data);
+    req.end();
+  });
+}
+async function getGitHubFileSha(repoPath) {
+  try {
+    const json = await ghApiRequest("GET", `/repos/${GH_REPO}/contents/${repoPath}?ref=${GH_BRANCH}`);
+    return json && json.sha ? json.sha : null;
+  } catch (e) {
+    if (String(e.message).includes("404")) return null; // 文件尚不存在
+    throw e;
+  }
+}
+async function syncArticleToGitHub(article) {
+  if (!githubSyncEnabled()) return;
+  const repoPath = `data/articles/${safeId(article.id)}.json`;
+  const content = Buffer.from(JSON.stringify(article, null, 2), "utf8").toString("base64");
+  try {
+    const sha = await getGitHubFileSha(repoPath);
+    await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
+      message: `chore: sync article ${article.id}`,
+      content,
+      branch: GH_BRANCH,
+      ...(sha ? { sha } : {}),
+    });
+    console.log("[github] 已同步文章到仓库: " + article.id);
+  } catch (e) {
+    console.error("[github] 同步文章失败 " + article.id + ": " + e.message);
+  }
+}
+async function syncDeleteArticleGitHub(id) {
+  if (!githubSyncEnabled()) return;
+  const repoPath = `data/articles/${safeId(id)}.json`;
+  try {
+    const sha = await getGitHubFileSha(repoPath);
+    if (!sha) return; // 仓库里本来就没有，无需删除
+    await ghApiRequest("DELETE", `/repos/${GH_REPO}/contents/${repoPath}`, {
+      message: `chore: delete article ${id}`,
+      sha,
+      branch: GH_BRANCH,
+    });
+    console.log("[github] 已从仓库删除文章: " + id);
+  } catch (e) {
+    console.error("[github] 删除 GitHub 文章失败 " + id + ": " + e.message);
+  }
+}
+
 // ---------- 静态文件 ----------
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -335,6 +423,7 @@ async function handleApi(req, res, url) {
         updatedAt: new Date().toISOString(),
       };
       saveArticle(article);
+      syncArticleToGitHub(article); // 自动同步回 GitHub 仓库（持久化）
       return sendJSON(res, 200, { ok: true, id });
     }
     // /api/articles/:id
@@ -353,6 +442,7 @@ async function handleApi(req, res, url) {
       if (!existing) return sendJSON(res, 404, { error: "文章不存在" });
       if (req.method === "DELETE") {
         deleteArticle(id);
+        syncDeleteArticleGitHub(id); // 同步从 GitHub 仓库删除
         return sendJSON(res, 200, { ok: true });
       }
       // PUT
@@ -367,6 +457,7 @@ async function handleApi(req, res, url) {
         updatedAt: new Date().toISOString(),
       };
       saveArticle(updated);
+      syncArticleToGitHub(updated); // 自动同步回 GitHub 仓库（持久化）
       return sendJSON(res, 200, { ok: true, id });
     }
     return sendJSON(res, 405, { error: "方法不被允许" });
