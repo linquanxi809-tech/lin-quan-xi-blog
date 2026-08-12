@@ -32,13 +32,7 @@
         </label>
         <label class="field">
           <span>标签</span>
-          <select name="tag">
-            <option value="生活">生活</option>
-            <option value="学习">学习</option>
-            <option value="随笔">随笔</option>
-            <option value="技术">技术</option>
-            <option value="其他">其他</option>
-          </select>
+          <input type="text" name="tag" placeholder="输入标签，如：生活、学习、随笔" />
         </label>
       </div>
 
@@ -99,7 +93,7 @@
               .then(function (data) {
                 var a = data.article;
                 form.title.value = a.title;
-                if (form.tag.querySelector('option[value="' + a.tag + '"]')) form.tag.value = a.tag;
+                form.tag.value = a.tag || "";
                 form.date.value = a.date;
                 form.author.value = a.author || "";
                 var clone = document.createElement("div");
