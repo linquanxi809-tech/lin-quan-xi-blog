@@ -1,16 +1,1 @@
-[
-  {
-    "id": "msq5yp20ijk591",
-    "username": "小风",
-    "salt": "fbca62d746a320c32d8686f714189349",
-    "hash": "d76969cc3b0e7f0d1d64e624c9d331e2f68dfdea7621bd8fd58e5d33e910f5123b78344d86199cb36b8fe392cdf384e88cdd8db6d0d34454a05634016868ed6e",
-    "createdAt": "2026-08-12T15:28:26.335Z"
-  },
-  {
-    "id": "msq5yp20ifeng1",
-    "username": "小奉",
-    "salt": "14acfa9f650187af0989deaa0400c2c9",
-    "hash": "663c39d88c976ca612fc6635d65b63b13cf1e0ff21c42d24349812881a65bb9714d07ccc39bcdb4a1114595861fea63b459d770aef4d4d039f168c114f7a9193",
-    "createdAt": "2026-08-12T15:28:26.404Z"
-  }
-]
+[{"id":"msq5yp20ijk591","username":"小风","salt":"fbca62d746a320c32d8686f714189349","hash":"d76969cc3b0e7f0d1d64e624c9d331e2f68dfdea7621bd8fd58e5d33e910f5123b78344d86199cb36b8fe392cdf384e88cdd8db6d0d34454a05634016868ed6e","createdAt":"2026-08-12T15:28:26.335Z"},{"id":"msq5yp20ifeng1","username":"小奉","salt":"14acfa9f650187af0989deaa0400c2c9","hash":"663c39d88c976ca612fc6635d65b63b13cf1e0ff21c42d24349812881a65bb9714d07ccc39bcdb4a1114595861fea63b459d770aef4d4d039f168c114f7a9193","createdAt":"2026-08-12T15:28:26.404Z"}]
