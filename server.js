@@ -2,11 +2,13 @@
  * 小站 · 轻量动态博客后端
  * 零依赖：仅使用 Node 内置模块。
  *
- * 文章存为 data/articles/<id>.json
- * 用户存为 data/users.json
+ * 文章存为 <DATA_DIR>/articles/<id>.json
+ * 用户存为 <DATA_DIR>/users.json
  * 会话保存在内存（重启后需重新登录）
  *
  * 启动：node server.js   （默认端口 3000，可用 PORT 环境变量覆盖）
+ * 数据目录：默认用仓库内的 data/；部署到带持久化磁盘的平台（如 Render）时，
+ *           用环境变量 DATA_DIR 指向挂载盘（如 /var/data），避免实例重启/休眠丢数据。
  */
 
 const http = require("http");
@@ -17,7 +19,11 @@ const { URL } = require("url");
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
-const DATA_DIR = path.join(ROOT, "data");
+// SEED_DIR：仓库内置的初始数据（已提交到 git，部署时随代码一起存在）
+const SEED_DIR = path.join(ROOT, "data");
+// DATA_DIR：运行时真实读写的数据目录。本地默认用仓库内的 data/；
+// 部署到 Render 等带持久化磁盘的平台时，用 DATA_DIR 指向挂载盘。
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : SEED_DIR;
 const ARTICLES_DIR = path.join(DATA_DIR, "articles");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 
@@ -25,6 +31,32 @@ const PORT = process.env.PORT || 3000;
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
 
 // ---------- 初始化目录 ----------
+// 若数据目录（持久化磁盘）为空，从仓库内置 seed 复制初始文章与用户，
+// 保证首次部署后站点就有内容。
+function seedIfEmpty() {
+  if (DATA_DIR === SEED_DIR) return; // 本地默认路径，无需 seed
+  const seedArticles = path.join(SEED_DIR, "articles");
+  const seedUsers = path.join(SEED_DIR, "users.json");
+  let needSeed = false;
+  if (!fs.existsSync(ARTICLES_DIR) || fs.readdirSync(ARTICLES_DIR).length === 0) needSeed = true;
+  if (!fs.existsSync(USERS_FILE)) needSeed = true;
+  if (!needSeed) return;
+  try {
+    fs.mkdirSync(ARTICLES_DIR, { recursive: true });
+    if (fs.existsSync(seedArticles)) {
+      for (const f of fs.readdirSync(seedArticles)) {
+        if (f.endsWith(".json")) fs.copyFileSync(path.join(seedArticles, f), path.join(ARTICLES_DIR, f));
+      }
+    }
+    if (!fs.existsSync(USERS_FILE) && fs.existsSync(seedUsers)) {
+      fs.copyFileSync(seedUsers, USERS_FILE);
+    }
+    console.log("[seed] 已从内置 seed 初始化数据目录 " + DATA_DIR);
+  } catch (e) {
+    console.error("[seed] 初始化失败:", e.message);
+  }
+}
+seedIfEmpty();
 fs.mkdirSync(ARTICLES_DIR, { recursive: true });
 if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
 

@@ -9,6 +9,13 @@ services:
     buildCommand: "npm install"
     startCommand: "node server.js"
     healthCheckPath: /
+    # 持久化磁盘：挂载到 /var/data，发布/修改/删除的文章在实例重启或休眠后仍保留
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATA_DIR
+        value: /var/data
