@@ -396,6 +396,30 @@ async function handleApi(req, res, url) {
     return sendJSON(res, 200, { ok: true });
   }
 
+  // /api/me (DELETE) —— 注销用户：删除账号及其全部文章
+  if (seg[0] === "me" && req.method === "DELETE") {
+    const u = currentUser(req);
+    if (!u) return sendJSON(res, 401, { error: "请先登录" });
+    // 删除该用户发布的文章（本地 + 同步到 GitHub 的副本）
+    const myArticles = listArticles().filter((a) => a.author === u.username);
+    for (const a of myArticles) {
+      deleteArticle(a.id);
+      try {
+        await syncDeleteArticleGitHub(a.id);
+      } catch (e) {
+        console.error("[github] 删除文章失败 " + a.id + ": " + e.message);
+      }
+    }
+    // 从用户表移除账号
+    const users = readUsers().filter((x) => x.id !== u.id);
+    writeUsers(users);
+    // 清除会话与 cookie
+    const cookies = parseCookies(req);
+    if (cookies.sid) sessions.delete(cookies.sid);
+    clearCookie(res, "sid");
+    return sendJSON(res, 200, { ok: true });
+  }
+
   // /api/articles
   if (seg[0] === "articles") {
     // 列表

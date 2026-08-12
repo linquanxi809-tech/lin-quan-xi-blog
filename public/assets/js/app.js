@@ -46,7 +46,8 @@ const App = (function () {
               '<span class="user-caret">▾</span>' +
             '</button>' +
             '<div class="user-menu" id="user-menu">' +
-              '<a href="#" id="logout-btn">注销用户</a>' +
+              '<a href="#" id="logout-btn">退出登录</a>' +
+              '<a href="#" id="delete-btn" class="danger">注销用户</a>' +
             '</div>' +
           '</div>';
         const dropdown = document.getElementById("user-dropdown");
@@ -73,6 +74,20 @@ const App = (function () {
             api("/api/logout", { method: "POST" }).then(function () {
               location.reload();
             });
+          });
+        const db = document.getElementById("delete-btn");
+        if (db)
+          db.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (!window.confirm("注销用户会永久删除你的账号和全部文章，且无法恢复。确定要继续吗？"))
+              return;
+            api("/api/me", { method: "DELETE" })
+              .then(function () {
+                location.href = "index.html";
+              })
+              .catch(function (err) {
+                alert("注销失败：" + err.message);
+              });
           });
       } else {
         area.innerHTML =
