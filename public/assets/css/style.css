@@ -152,10 +152,27 @@ a:hover {
   box-shadow: var(--shadow);
 }
 
+.logout-side {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--purple);
+  font-weight: 700;
+}
+
+.logout-side:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--purple);
+}
+
 .auth-user {
   font-weight: 700;
   color: var(--purple);
   font-size: 0.95rem;
+}
+
+.user-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .user-dropdown {

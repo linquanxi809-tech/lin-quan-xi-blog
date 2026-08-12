@@ -40,15 +40,17 @@ const App = (function () {
       const { user } = await api("/api/me");
       if (user) {
         area.innerHTML =
-          '<div class="user-dropdown" id="user-dropdown">' +
-            '<button class="user-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
-              '<span class="auth-user">👤 ' + escapeHtml(user.username) + '</span>' +
-              '<span class="user-caret">▾</span>' +
-            '</button>' +
-            '<div class="user-menu" id="user-menu">' +
-              '<a href="#" id="logout-btn">退出登录</a>' +
-              '<a href="#" id="delete-btn" class="danger">注销用户</a>' +
+          '<div class="user-bar">' +
+            '<div class="user-dropdown" id="user-dropdown">' +
+              '<button class="user-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
+                '<span class="auth-user">👤 ' + escapeHtml(user.username) + '</span>' +
+                '<span class="user-caret">▾</span>' +
+              '</button>' +
+              '<div class="user-menu" id="user-menu">' +
+                '<a href="#" id="delete-btn" class="danger">注销用户</a>' +
+              '</div>' +
             '</div>' +
+            '<a href="#" id="logout-btn" class="auth-link logout-side">退出登录</a>' +
           '</div>';
         const dropdown = document.getElementById("user-dropdown");
         const trigger = dropdown.querySelector(".user-trigger");
