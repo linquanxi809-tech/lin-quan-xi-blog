@@ -30,7 +30,10 @@
       </label>
       <label class="field" style="margin-top:16px">
         <span>密码</span>
-        <input type="password" name="password" placeholder="至少 6 位" required />
+        <div class="password-field">
+          <input type="password" name="password" id="register-password" placeholder="至少 6 位" required />
+          <button type="button" class="toggle-pwd" data-target="register-password" aria-label="显示密码">👁️</button>
+        </div>
       </label>
       <div class="actions" style="margin-top:20px">
         <button type="submit" class="btn btn-primary">注册并登录</button>
@@ -51,6 +54,16 @@
   <script>
     (function () {
       App.renderAuthUI();
+      document.querySelectorAll(".toggle-pwd").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var input = document.getElementById(this.dataset.target);
+          if (!input) return;
+          var isPwd = input.type === "password";
+          input.type = isPwd ? "text" : "password";
+          this.setAttribute("aria-label", isPwd ? "隐藏密码" : "显示密码");
+          this.textContent = isPwd ? "🙈" : "👁️";
+        });
+      });
       var form = document.getElementById("register-form");
       var msg = document.getElementById("msg");
       form.addEventListener("submit", function (e) {
