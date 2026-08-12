@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "msqa8mbq5myex1",
+    "username": "新鸻",
+    "salt": "7bfe68adc0845e725633183e6da4d8a7",
+    "hash": "f386509670490de7d58946300430d034d742af247b2dce22956be06026e9b858b109f71e8e4fa6d1d56217dc94f2d2cd5b118eef8bb9c985cf18e55dd9b6c1dc",
+    "createdAt": "2026-08-12T16:07:14.732Z"
+  }
+]
