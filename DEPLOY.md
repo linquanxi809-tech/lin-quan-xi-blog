@@ -101,11 +101,13 @@ services:
   （只授权未点 Apply）。以 Render 控制台显示的 `onrender.com` 地址为准。
 - **部署失败**：把 Render 的 Build/Deploy 日志贴给 AI 排查。本项目端口、PORT 监听、
   持久化磁盘配置均已校验无误，问题多在外部配置。
-- **改完代码怎么更新**：本地改完，再跑一次 `deploy-to-github.bat` 推到 GitHub。
-  ⚠️ **重要**：本服务是通过 **Render API 创建**的，**没有配置自动部署 webhook**，
-  所以单纯 `git push` 不会自动重新部署。推送后必须手动触发一次部署：
-  - 在 Render 控制台 → 服务 → **Manual Deploy → Deploy latest commit**；或
-  - 用 API：`POST https://api.render.com/v1/services/<serviceId>/deploys`（Bearer Key）。
+- **改完代码怎么更新**：本项目已接入 **GitHub Actions 自动部署**
+  （`.github/workflows/deploy-render.yml`）。本地改完，再跑一次 `deploy-to-github.bat`
+  推到 GitHub，GitHub Actions 会**自动调用 Render API 触发部署**，无需手动操作。
+  - 前提：仓库 Settings → Secrets → Actions 里已配置
+    `RENDER_API_KEY`（Render API Key）与 `RENDER_SERVICE_ID`（如 `srv-xxx`）。
+  - 若想手动触发也可：Render 控制台 → 服务 → **Manual Deploy → Deploy latest commit**，
+    或用 API：`POST https://api.render.com/v1/services/<serviceId>/deploys`（Bearer Key）。
 - **账号 / 文章清理**：API 创建的服务，重部署会把容器本地状态重置回 git 快照
   （即 GitHub 上 `data/users.json` 与 `data/articles/` 的内容）。若想清掉线上测试
   账号或测试文章，记得先在 GitHub 仓库里改好，再手动重部署。
