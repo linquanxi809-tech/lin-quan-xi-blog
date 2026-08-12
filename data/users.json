@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "msq5yp20ijk591",
+    "username": "小风",
+    "salt": "a5c3693d8bb2fcbc72d2734c308d013b",
+    "hash": "7c05925c28b7f4f2df14dac0baa5ab35404ab439e23aac4ca1341b6f31f92d4dc5f0d16f0028f5b3983d36234a1ec048824a6ee91cac4357d7dd06e7dd78f7cc",
+    "createdAt": "2026-08-12T14:06:19.000Z"
+  }
+]
