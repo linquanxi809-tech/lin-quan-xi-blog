@@ -722,6 +722,7 @@ a:hover {
   border-radius: var(--radius);
   padding: 32px;
   box-shadow: var(--shadow);
+  margin: 0 auto;
 }
 
 .field {
