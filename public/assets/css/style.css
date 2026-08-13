@@ -900,9 +900,8 @@ a:hover {
   margin: 0;
   color: #ffe7c2;
   font-family: "Courier New", ui-monospace, monospace;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   font-size: 0.95rem;
-  text-align: center;
   text-shadow: 0 0 8px rgba(255, 138, 0, 0.5);
 }
 .loader-bar {
