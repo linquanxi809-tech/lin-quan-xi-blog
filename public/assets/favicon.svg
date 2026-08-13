@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1b2e"/>
+      <stop offset="100%" stop-color="#0f0d18"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="80%" r="50%">
+      <stop offset="0%" stop-color="#ff5722" stop-opacity="0.5">
+        <animate attributeName="stop-opacity" values="0.5;0.7;0.4;0.6;0.5" dur="1.2s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="#ff5722" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 背景圆 -->
+  <circle cx="50" cy="50" r="48" fill="url(#bg)"/>
+
+  <!-- 地面 -->
+  <ellipse cx="50" cy="78" rx="28" ry="5" fill="#2a1d18">
+    <animate attributeName="rx" values="28;30;28" dur="2s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <!-- 光晕 -->
+  <ellipse cx="50" cy="75" rx="26" ry="18" fill="url(#glow)"/>
+
+  <!-- 木柴 -->
+  <g fill="#6d4c41" stroke="#3e2723" stroke-width="1.5" stroke-linecap="round">
+    <rect x="32" y="72" width="36" height="5" rx="2" transform="rotate(-12 50 75)"/>
+    <rect x="32" y="72" width="36" height="5" rx="2" transform="rotate(12 50 75)"/>
+    <rect x="38" y="70" width="24" height="5" rx="2"/>
+  </g>
+
+  <!-- 外层火焰 -->
+  <path fill="#d84315" opacity="0.85">
+    <animate attributeName="d" dur="0.8s" repeatCount="indefinite" values="
+      M50 70 C38 70,34 55,36 45 C38 35,44 28,50 22 C56 28,62 35,64 45 C66 55,62 70,50 70 Z;
+      M50 70 C37 70,32 56,35 44 C38 32,43 26,50 18 C57 26,62 32,65 44 C68 56,63 70,50 70 Z;
+      M50 70 C39 70,35 54,37 46 C39 36,45 29,50 24 C55 29,61 36,63 46 C65 54,61 70,50 70 Z;
+      M50 70 C38 70,34 55,36 45 C38 35,44 28,50 22 C56 28,62 35,64 45 C66 55,62 70,50 70 Z"/>
+    <animate attributeName="opacity" values="0.85;0.95;0.8;0.9;0.85" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- 中层火焰 -->
+  <path fill="#ff6d00" opacity="0.9">
+    <animate attributeName="d" dur="0.65s" repeatCount="indefinite" values="
+      M50 68 C41 68,38 57,40 49 C42 41,46 36,50 31 C54 36,58 41,60 49 C62 57,59 68,50 68 Z;
+      M50 68 C40 68,37 58,39 48 C41 38,45 33,50 27 C55 33,59 38,61 48 C63 58,60 68,50 68 Z;
+      M50 68 C42 68,39 56,41 50 C43 42,47 37,50 33 C53 37,57 42,59 50 C61 56,58 68,50 68 Z;
+      M50 68 C41 68,38 57,40 49 C42 41,46 36,50 31 C54 36,58 41,60 49 C62 57,59 68,50 68 Z"/>
+  </path>
+
+  <!-- 内层火焰 -->
+  <path fill="#ffca28" opacity="0.95">
+    <animate attributeName="d" dur="0.5s" repeatCount="indefinite" values="
+      M50 65 C44 65,42 57,44 51 C45 46,48 42,50 39 C52 42,55 46,56 51 C58 57,56 65,50 65 Z;
+      M50 65 C43 65,41 58,43 50 C44 45,48 41,50 36 C52 41,56 45,57 50 C59 58,57 65,50 65 Z;
+      M50 65 C45 65,43 56,45 52 C46 47,49 43,50 40 C51 43,54 47,55 52 C57 56,55 65,50 65 Z;
+      M50 65 C44 65,42 57,44 51 C45 46,48 42,50 39 C52 42,55 46,56 51 C58 57,56 65,50 65 Z"/>
+  </path>
+
+  <!-- 火星粒子 -->
+  <g fill="#ffab40">
+    <circle cx="45" cy="55" r="1.2">
+      <animate attributeName="cy" values="55;45;35" dur="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.6;0" dur="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="45;46;47" dur="1.4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="55" cy="58" r="1">
+      <animate attributeName="cy" values="58;48;38" dur="1.7s" begin="0.3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.6;0" dur="1.7s" begin="0.3s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="55;54;53" dur="1.7s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="50" cy="52" r="0.9">
+      <animate attributeName="cy" values="52;42;32" dur="1.2s" begin="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.5;0" dur="1.2s" begin="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="50;51;50" dur="1.2s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>
