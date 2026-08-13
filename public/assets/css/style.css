@@ -902,11 +902,13 @@ a:hover {
   font-family: "Courier New", ui-monospace, monospace;
   letter-spacing: 4px;
   font-size: 0.95rem;
+  text-align: center;
   text-shadow: 0 0 8px rgba(255, 138, 0, 0.5);
 }
 .loader-bar {
   width: 180px;
   height: 12px;
+  margin: 0 auto;
   background: #1a1428;
   border: 2px solid #4a3b66;
   border-radius: 2px;
