@@ -906,7 +906,7 @@ a:hover {
   text-shadow: 0 0 8px rgba(255, 138, 0, 0.5);
 }
 .loader-bar {
-  width: 180px;
+  width: 240px;
   height: 12px;
   margin: 0 auto;
   background: #1a1428;
@@ -917,10 +917,12 @@ a:hover {
 .loader-bar > span {
   display: block;
   height: 100%;
-  width: 0;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: center;
   background: repeating-linear-gradient(90deg, #ff6d00 0 8px, #ffca28 8px 16px);
   animation: load 2.4s ease forwards;
 }
 @keyframes load {
-  to { width: 100%; }
+  to { transform: scaleX(1); }
 }
