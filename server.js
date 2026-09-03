@@ -36,6 +36,13 @@ try {
 } catch (e) {
   console.warn("[inbound] resend SDK 未加载，收信转发功能不可用");
 }
+// postal-mime：解析收信原始邮件，便于转发时保留正文/附件并带上原发送者（reply_to）。受保护加载。
+let postalMime = null;
+try {
+  postalMime = require("postal-mime");
+} catch (e) {
+  console.warn("[inbound] postal-mime 未加载，转发将退回官方 forward（不带原发送者）");
+}
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
@@ -330,13 +337,50 @@ async function handleResendInbound(req, res) {
     if (event && event.type === "email.received") {
       const emailId = event.data && event.data.email_id;
       if (emailId) {
-        const { error } = await resend.emails.receiving.forward({
-          emailId,
-          to: FORWARD_TO,
-          from: EMAIL_FROM,
-        });
-        if (error) console.error("[inbound] 转发失败:", error);
-        else console.log("[inbound] 已转发邮件", emailId, "→", FORWARD_TO);
+        try {
+          const emailResp = await resend.emails.receiving.get(emailId);
+          const email = (emailResp && emailResp.data) || {};
+          const originalSender = email.from || "";
+          const originalSubject = email.subject || "(无主题)";
+          const rawUrl = email.raw && email.raw.download_url;
+          if (rawUrl && postalMime) {
+            // 解析原始邮件，原样转发正文/附件，并把「原发送者」放进 reply_to、主题前缀显示发件人
+            try {
+              const pm = postalMime.default || postalMime;
+              const rawContent = await fetch(rawUrl).then((r) => r.text());
+              const parsed = await pm.parse(rawContent, { attachmentEncoding: "base64" });
+              const attachments = (parsed.attachments || []).map((a) => ({
+                filename: a.filename,
+                content: a.content.toString(),
+                content_type: a.mimeType,
+                content_id: a.contentId ? a.contentId.replace(/^<|>$/g, "") : undefined,
+              }));
+              const { error } = await resend.emails.send({
+                from: EMAIL_FROM,
+                to: FORWARD_TO,
+                reply_to: originalSender || undefined,
+                subject: `来自 ${originalSender || "某人"}：「${originalSubject}」`,
+                text: parsed.text || undefined,
+                html: parsed.html || undefined,
+                attachments: attachments.length ? attachments : undefined,
+              });
+              if (error) throw new Error(JSON.stringify(error));
+              console.log("[inbound] 已转发邮件", emailId, "→", FORWARD_TO, "| 原发送者:", originalSender);
+            } catch (customErr) {
+              console.error("[inbound] 自定义转发失败，回退官方 forward:", customErr && customErr.message);
+              const fb = await resend.emails.receiving.forward({ emailId, to: FORWARD_TO, from: EMAIL_FROM });
+              if (fb.error) console.error("[inbound] 回退转发也失败:", fb.error);
+              else console.log("[inbound] 已转发邮件(回退)", emailId, "→", FORWARD_TO);
+            }
+          } else {
+            // raw 不可得或无 postal-mime：用官方 forward 兜底（仍可用，只是不带 reply_to）
+            const { error } = await resend.emails.receiving.forward({ emailId, to: FORWARD_TO, from: EMAIL_FROM });
+            if (error) console.error("[inbound] 转发失败:", error);
+            else console.log("[inbound] 已转发邮件", emailId, "→", FORWARD_TO);
+          }
+        } catch (getErr) {
+          console.error("[inbound] 获取邮件详情失败:", getErr && getErr.message);
+        }
       }
     }
     return sendJSON(res, 200, { ok: true });
