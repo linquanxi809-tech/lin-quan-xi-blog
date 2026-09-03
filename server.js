@@ -522,6 +522,14 @@ async function handleApi(req, res, url) {
 
 // ---------- 主服务器 ----------
 const server = http.createServer((req, res) => {
+  // 旧域名跳转：访问 lin-quan-xi-blog.onrender.com 时 301 永久跳转到新域名，
+  // 保留原路径与查询参数；其他 onrender 子域（预览/调试）和本站新域名不受影响。
+  const host = (req.headers.host || "").split(":")[0].toLowerCase();
+  if (host === "lin-quan-xi-blog.onrender.com") {
+    const target = "https://gh-xiao-wu.de5.net" + (req.url || "/");
+    res.writeHead(301, { Location: target });
+    return res.end();
+  }
   const url = new URL(req.url, "http://localhost");
   if (url.pathname.startsWith("/api/")) {
     handleApi(req, res, url).catch((err) => {
