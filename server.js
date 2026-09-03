@@ -1,6 +1,6 @@
 /**
  * 小站 · 轻量动态博客后端（完整账号系统）
- * 零依赖：仅使用 Node 内置模块。
+ * 收信转发（Resend inbound → Gmail）使用 resend SDK；用受保护加载，未安装时自动降级不影响博客。
  *
  * 文章存为 <DATA_DIR>/articles/<id>.json
  * 用户存为 <DATA_DIR>/users.json
@@ -29,6 +29,14 @@ const path = require("path");
 const crypto = require("crypto");
 const { URL } = require("url");
 
+// Resend SDK：仅用于收信 webhook 转发到 Gmail。受保护加载——未安装时自动降级，不影响博客其它功能。
+let Resend = null;
+try {
+  ({ Resend } = require("resend"));
+} catch (e) {
+  console.warn("[inbound] resend SDK 未加载，收信转发功能不可用");
+}
+
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const SEED_DIR = path.join(ROOT, "data");
@@ -41,6 +49,8 @@ const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
 const APP_ORIGIN = process.env.APP_ORIGIN || "https://gh-xiao-wu.de5.net";
 const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@gh-xiao-wu.de5.net";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || "";
+const FORWARD_TO = process.env.FORWARD_TO || "linquanxi809@gmail.com";
 const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
   .split(",")
   .map((s) => s.trim())
@@ -131,6 +141,24 @@ function readBody(req) {
         reject(new Error("无效的 JSON"));
       }
     });
+    req.on("error", reject);
+  });
+}
+// 读取原始请求体（webhook 签名校验需要原文，不能用 JSON.parse 后的对象）
+function readRawBody(req, limit = 5 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    let size = 0;
+    req.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        reject(new Error("请求体过大"));
+        req.destroy();
+        return;
+      }
+      data += chunk;
+    });
+    req.on("end", () => resolve(data));
     req.on("error", reject);
   });
 }
@@ -268,6 +296,54 @@ async function sendEmail(to, subject, html) {
     req.write(payload);
     req.end();
   });
+}
+
+// ---------- 收信转发（Resend inbound webhook → Gmail） ----------
+// Resend 收到发往 mail.gh-xiao-wu.de5.net 的邮件后，会 POST 一个 email.received 事件到这里；
+// 我们校验 Svix 签名，再调用 Resend 官方 forward 把邮件原样转发到 FORWARD_TO（Gmail）。
+async function handleResendInbound(req, res) {
+  if (!Resend) {
+    return sendJSON(res, 500, { error: "resend SDK 未加载，收信转发不可用" });
+  }
+  if (!RESEND_WEBHOOK_SECRET) {
+    return sendJSON(res, 500, { error: "未配置 RESEND_WEBHOOK_SECRET" });
+  }
+  let raw = "";
+  try {
+    raw = await readRawBody(req);
+  } catch (e) {
+    return sendJSON(res, 400, { error: "读取请求体失败" });
+  }
+  const id = req.headers["svix-id"];
+  const timestamp = req.headers["svix-timestamp"];
+  const signature = req.headers["svix-signature"];
+  if (!id || !timestamp || !signature) {
+    return sendJSON(res, 400, { error: "缺少 Svix 签名头" });
+  }
+  try {
+    const resend = new Resend(RESEND_API_KEY);
+    const event = resend.webhooks.verify({
+      payload: raw,
+      headers: { id, timestamp, signature },
+      webhookSecret: RESEND_WEBHOOK_SECRET,
+    });
+    if (event && event.type === "email.received") {
+      const emailId = event.data && event.data.email_id;
+      if (emailId) {
+        const { error } = await resend.emails.receiving.forward({
+          emailId,
+          to: FORWARD_TO,
+          from: EMAIL_FROM,
+        });
+        if (error) console.error("[inbound] 转发失败:", error);
+        else console.log("[inbound] 已转发邮件", emailId, "→", FORWARD_TO);
+      }
+    }
+    return sendJSON(res, 200, { ok: true });
+  } catch (e) {
+    console.error("[inbound] 签名校验失败:", e && e.message);
+    return sendJSON(res, 401, { error: "签名校验失败" });
+  }
 }
 
 // ---------- 文章 ----------
@@ -499,6 +575,11 @@ function resultPage(title, msg, isOk) {
 async function handleApi(req, res, url) {
   const parts = url.pathname.split("/").filter(Boolean);
   const seg = parts.slice(1);
+
+  // /api/resend-inbound  Resend 收信 webhook：校验签名后转发到 Gmail
+  if (seg[0] === "resend-inbound" && req.method === "POST") {
+    return handleResendInbound(req, res);
+  }
 
   // /api/me (GET) 当前用户信息
   if (seg[0] === "me" && req.method === "GET") {
