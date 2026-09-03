@@ -793,6 +793,10 @@ a:hover {
   color: #7a5c14;
   font-size: 0.9rem;
 }
+/* 没操作前不要占位的黄条——只有填了文字才出现 */
+.editor .hint:empty {
+  display: none;
+}
 
 .preview-post {
   margin-top: 32px;
