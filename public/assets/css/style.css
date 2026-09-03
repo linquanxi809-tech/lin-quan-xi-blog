@@ -381,6 +381,15 @@ a:hover {
 .section-head h2 .emoji {
   font-size: 1.5rem;
 }
+.section-head h2 .profile-heading-avatar {
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  vertical-align: middle;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 4px;
+}
 
 .section-head a.more {
   font-weight: 600;
