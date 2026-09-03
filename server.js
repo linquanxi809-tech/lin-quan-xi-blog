@@ -358,7 +358,7 @@ async function handleResendInbound(req, res) {
               const { error } = await resend.emails.send({
                 from: EMAIL_FROM,
                 to: FORWARD_TO,
-                reply_to: originalSender || undefined,
+                replyTo: originalSender || undefined,
                 subject: `来自 ${originalSender || "某人"}：「${originalSubject}」`,
                 text: parsed.text || undefined,
                 html: parsed.html || undefined,
