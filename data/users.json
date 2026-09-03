@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "mtleq1ffgets4x",
+    "username": "阿酒",
+    "email": "linquanxi809@gmail.com",
+    "salt": "e5eb9a59cc632649e05cd66b9d7a6659",
+    "hash": "6d8fc5ca9619a5a688ec0209de260befb8f86a35d10493f9b23433cdf4a64587d022fcef6da9b925625e283069c65ac5cf7559d2c3ec349b9e8df3f594082fb3",
+    "displayName": "",
+    "bio": "",
+    "avatar": "",
+    "role": "admin",
+    "emailVerified": false,
+    "verifyToken": "4062b3f23adbd0d100bd5853bdf5171445d5c587bed0418f1e906ac06a79cfa2",
+    "verifyExpires": 1788519217331,
+    "resetToken": null,
+    "resetExpires": null,
+    "createdAt": "2026-09-03T10:53:37.331Z"
+  }
+]
