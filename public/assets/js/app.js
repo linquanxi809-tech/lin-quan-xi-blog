@@ -43,11 +43,14 @@ const App = (function () {
         let menu = '<a href="profile.html">个人资料</a>';
         if (user.role === "admin") menu += '<a href="admin.html">用户管理</a>';
         menu += '<a href="#" id="logout-btn">退出登录</a>';
+        const avatarHtml = user.avatar
+          ? '<img class="auth-avatar" src="' + escapeHtml(user.avatar) + '" alt="">'
+          : '<span class="auth-emoji" aria-hidden="true">👤</span>';
         area.innerHTML =
           '<div class="user-bar">' +
             '<div class="user-dropdown" id="user-dropdown">' +
               '<button class="user-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
-                '<span class="auth-user">👤 ' + escapeHtml(name) + '</span>' +
+                '<span class="auth-user">' + avatarHtml + ' ' + escapeHtml(name) + '</span>' +
                 '<span class="user-caret">▾</span>' +
               '</button>' +
               '<div class="user-menu" id="user-menu">' + menu + '</div>' +
