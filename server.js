@@ -812,8 +812,10 @@ async function handleApi(req, res, url) {
 // ---------- 主服务器 ----------
 const server = http.createServer((req, res) => {
   const host = (req.headers.host || "").split(":")[0].toLowerCase();
-  if (host === "lin-quan-xi-blog.onrender.com") {
-    const target = "https://gh-xiao-wu.de5.net" + (req.url || "/");
+  const CANONICAL = "www.gh-xiao-wu.de5.net";
+  // 旧 onrender 域名、以及裸域名(apex，已让给邮件 MX) 都跳转到 www 规范地址
+  if (host === "lin-quan-xi-blog.onrender.com" || host === "gh-xiao-wu.de5.net") {
+    const target = "https://" + CANONICAL + (req.url || "/");
     res.writeHead(301, { Location: target });
     return res.end();
   }
