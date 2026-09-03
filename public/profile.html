@@ -119,7 +119,10 @@
           method: "PUT",
           body: { displayName: f.displayName.value.trim(), bio: f.bio.value.trim(), avatar: f.avatar.value.trim() },
         })
-          .then(function () { document.getElementById("profile-msg").textContent = "资料已保存 ✅"; })
+          .then(function () {
+          document.getElementById("profile-msg").textContent = "资料已保存 ✅";
+          App.renderAuthUI();
+        })
           .catch(function (err) { document.getElementById("profile-msg").textContent = "保存失败：" + err.message; });
       });
 
