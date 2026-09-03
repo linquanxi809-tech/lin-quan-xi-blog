@@ -1,7 +1,7 @@
 {
   "name": "lin-quan-xi-blog",
   "version": "1.0.0",
-  "description": "林泉汐 · 动态个人博客（Node.js 零依赖后端 + 前端）",
+  "description": "休憩者 · 动态个人博客（Node.js 零依赖后端 + 前端）",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
