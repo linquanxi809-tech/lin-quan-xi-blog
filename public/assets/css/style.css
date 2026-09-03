@@ -168,6 +168,23 @@ a:hover {
   color: var(--purple);
   font-size: 0.95rem;
 }
+.auth-avatar {
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  vertical-align: middle;
+  margin-right: 4px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(122, 92, 20, 0.25);
+}
+.auth-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 1em;
+  line-height: 1;
+  vertical-align: middle;
+}
 
 .user-bar {
   display: inline-flex;
