@@ -927,3 +927,50 @@ a:hover {
 @keyframes load {
   to { transform: scaleX(1); }
 }
+
+/* ---------- 账号系统新增样式（资料 / 管理 / 徽章） ---------- */
+.profile-info {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line, #2a2340);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  line-height: 1.9;
+}
+.profile-info .badge { margin-left: 6px; }
+.sub {
+  margin: 26px 0 12px;
+  font-size: 1.1rem;
+  border-left: 3px solid #ff6d00;
+  padding-left: 10px;
+}
+.danger-title { color: #ff7043; }
+.muted { color: var(--ink-soft); font-size: 0.9rem; }
+
+.badge.ok {
+  background: rgba(31, 157, 107, 0.18);
+  color: #38d39f;
+}
+.badge.warn {
+  background: rgba(255, 167, 38, 0.18);
+  color: #ffca28;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  border-radius: 7px;
+}
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line, #2a2340);
+  flex-wrap: wrap;
+}
+.user-actions {
+  display: flex;
+  gap: 8px;
+}

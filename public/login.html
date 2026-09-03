@@ -12,7 +12,6 @@
     <div class="wrap nav-inner">
       <a class="brand" href="index.html"><span class="dot"></span>小站</a>
       <nav class="nav-links">
-        <a class="nav-btn" href="publish.html">✍️ 发布</a>
         <a href="index.html">首页</a>
         <a href="about.html">关于</a>
         <span id="auth-area" class="auth-area"></span>
@@ -26,8 +25,8 @@
     </div>
     <form class="editor reveal" id="login-form" style="max-width:460px; margin:0 auto">
       <label class="field">
-        <span>用户名</span>
-        <input type="text" name="username" placeholder="你的用户名" required />
+        <span>用户名或邮箱</span>
+        <input type="text" name="username" placeholder="你的用户名或邮箱" required />
       </label>
       <label class="field" style="margin-top:16px">
         <span>密码</span>
@@ -39,6 +38,9 @@
       <div class="actions" style="margin-top:20px">
         <button type="submit" class="btn btn-primary">登录</button>
         <a class="btn btn-ghost" href="register.html">还没有账号？注册</a>
+      </div>
+      <div class="hint" style="text-align:center">
+        <a href="forgot-password.html">忘记密码？</a>
       </div>
       <div class="hint" id="msg"></div>
     </form>

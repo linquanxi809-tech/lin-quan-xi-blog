@@ -1,4 +1,4 @@
-// 小站 · 前端通用脚本（动态版）
+// 小站 · 前端通用脚本（动态版 · 完整账号系统）
 // 提供：API 请求、登录态 UI、标签配色、正文 HTML <-> 文本 转换
 
 const App = (function () {
@@ -39,24 +39,25 @@ const App = (function () {
     try {
       const { user } = await api("/api/me");
       if (user) {
+        const name = user.displayName || user.username;
+        let menu = '<a href="profile.html">个人资料</a>';
+        if (user.role === "admin") menu += '<a href="admin.html">用户管理</a>';
+        menu += '<a href="#" id="logout-btn">退出登录</a>';
         area.innerHTML =
           '<div class="user-bar">' +
             '<div class="user-dropdown" id="user-dropdown">' +
               '<button class="user-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
-                '<span class="auth-user">👤 ' + escapeHtml(user.username) + '</span>' +
+                '<span class="auth-user">👤 ' + escapeHtml(name) + '</span>' +
                 '<span class="user-caret">▾</span>' +
               '</button>' +
-              '<div class="user-menu" id="user-menu">' +
-                '<a href="#" id="delete-btn" class="danger">注销用户</a>' +
-              '</div>' +
+              '<div class="user-menu" id="user-menu">' + menu + '</div>' +
             '</div>' +
-            '<a href="#" id="logout-btn" class="auth-link logout-side">退出登录</a>' +
           '</div>';
         const dropdown = document.getElementById("user-dropdown");
         const trigger = dropdown.querySelector(".user-trigger");
-        const menu = document.getElementById("user-menu");
+        const menuEl = document.getElementById("user-menu");
         function toggleMenu() {
-          const open = menu.classList.toggle("show");
+          const open = menuEl.classList.toggle("show");
           trigger.setAttribute("aria-expanded", String(open));
         }
         trigger.addEventListener("click", function (e) {
@@ -65,7 +66,7 @@ const App = (function () {
         });
         document.addEventListener("click", function (e) {
           if (!dropdown.contains(e.target)) {
-            menu.classList.remove("show");
+            menuEl.classList.remove("show");
             trigger.setAttribute("aria-expanded", "false");
           }
         });
@@ -76,20 +77,6 @@ const App = (function () {
             api("/api/logout", { method: "POST" }).then(function () {
               location.reload();
             });
-          });
-        const db = document.getElementById("delete-btn");
-        if (db)
-          db.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (!window.confirm("注销用户会永久删除你的账号和全部文章，且无法恢复。确定要继续吗？"))
-              return;
-            api("/api/me", { method: "DELETE" })
-              .then(function () {
-                location.href = "index.html";
-              })
-              .catch(function (err) {
-                alert("注销失败：" + err.message);
-              });
           });
       } else {
         area.innerHTML =

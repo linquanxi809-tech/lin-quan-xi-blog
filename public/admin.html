@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用户管理 · 围坐篝火话天下</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section wrap">
+    <div class="section-head reveal">
+      <h2><span class="emoji">🛡️</span> 用户管理</h2>
+    </div>
+    <div id="msg" class="hint"></div>
+    <div class="editor reveal" id="user-list">加载中…</div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.renderAuthUI();
+      var listEl = document.getElementById("user-list");
+      var msg = document.getElementById("msg");
+
+      function load() {
+        App.api("/api/admin/users")
+          .then(function (data) {
+            if (!data.users || !data.users.length) {
+              listEl.innerHTML = "<p>暂无用户。</p>";
+              return;
+            }
+            listEl.innerHTML = data.users.map(function (u) {
+              var roleBtn = u.role === "admin"
+                ? '<button class="btn btn-ghost btn-sm" data-act="role" data-id="' + u.id + '" data-role="user">降级为普通用户</button>'
+                : '<button class="btn btn-ghost btn-sm" data-act="role" data-id="' + u.id + '" data-role="admin">设为管理员</button>';
+              return '<div class="user-row">' +
+                '<div><strong>' + App.escapeHtml(u.username) + '</strong>' +
+                (u.email ? ' <span class="muted">' + App.escapeHtml(u.email) + '</span>' : '') +
+                ' ' + (u.emailVerified ? '<span class="badge ok">已验证</span>' : '<span class="badge warn">未验证</span>') +
+                ' <span class="badge">' + (u.role === "admin" ? "管理员" : "用户") + '</span></div>' +
+                '<div class="user-actions">' + roleBtn +
+                '<button class="btn btn-danger btn-sm" data-act="del" data-id="' + u.id + '">删除</button></div>' +
+              '</div>';
+            }).join("");
+          })
+          .catch(function (err) {
+            if (err.status === 403) location.href = "login.html?next=" + encodeURIComponent("admin.html");
+            else listEl.innerHTML = "加载失败：" + err.message;
+          });
+      }
+      load();
+
+      listEl.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        var id = btn.getAttribute("data-id");
+        var act = btn.getAttribute("data-act");
+        if (act === "del") {
+          if (!confirm("确定删除该用户及其全部文章？")) return;
+          App.api("/api/admin/users/" + id, { method: "DELETE" })
+            .then(function () { msg.textContent = "已删除。"; load(); })
+            .catch(function (err) { msg.textContent = "删除失败：" + err.message; });
+        } else if (act === "role") {
+          var role = btn.getAttribute("data-role");
+          App.api("/api/admin/users/" + id, { method: "PUT", body: { role: role } })
+            .then(function () { msg.textContent = "角色已更新。"; load(); })
+            .catch(function (err) { msg.textContent = "更新失败：" + err.message; });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

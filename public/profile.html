@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>个人资料 · 围坐篝火话天下</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span>小站</a>
+      <nav class="nav-links">
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section wrap">
+    <div class="section-head reveal">
+      <h2><span class="emoji">👤</span> 个人资料</h2>
+    </div>
+
+    <div class="editor reveal" style="max-width:520px; margin:0 auto">
+      <div id="profile-info" class="profile-info"></div>
+
+      <h3 class="sub">基本信息</h3>
+      <form id="profile-form">
+        <label class="field">
+          <span>昵称</span>
+          <input type="text" name="displayName" placeholder="展示用的昵称（留空则显示用户名）" />
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>简介</span>
+          <textarea name="bio" rows="3" placeholder="一句话介绍自己（最多 200 字）"></textarea>
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>头像图片链接</span>
+          <input type="text" name="avatar" placeholder="https://... 图片 URL（可选）" />
+        </label>
+        <div class="actions" style="margin-top:20px">
+          <button type="submit" class="btn btn-primary">保存资料</button>
+        </div>
+        <div class="hint" id="profile-msg"></div>
+      </form>
+
+      <h3 class="sub">修改密码</h3>
+      <form id="pwd-form">
+        <label class="field">
+          <span>当前密码</span>
+          <input type="password" name="currentPassword" placeholder="至少 6 位" />
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>新密码</span>
+          <input type="password" name="newPassword" placeholder="至少 6 位" />
+        </label>
+        <div class="actions" style="margin-top:20px">
+          <button type="submit" class="btn btn-primary">更新密码</button>
+        </div>
+        <div class="hint" id="pwd-msg"></div>
+      </form>
+
+      <h3 class="sub danger-title">危险操作</h3>
+      <div class="actions">
+        <button type="button" id="delete-btn" class="btn btn-danger">注销账号（删除全部文章）</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.renderAuthUI();
+      var info = document.getElementById("profile-info");
+
+      App.api("/api/me")
+        .then(function (data) {
+          if (!data.user) {
+            location.href = "login.html?next=" + encodeURIComponent("profile.html");
+            return;
+          }
+          var u = data.user;
+          var verifyHtml = u.emailVerified
+            ? '<span class="badge ok">邮箱已验证</span>'
+            : '<span class="badge warn">邮箱未验证</span> <button type="button" id="resend-btn" class="btn btn-ghost btn-sm">重新发送验证邮件</button>';
+          info.innerHTML =
+            '<p><strong>用户名：</strong>' + App.escapeHtml(u.username) + "</p>" +
+            (u.email ? "<p><strong>邮箱：</strong>" + App.escapeHtml(u.email) + " " + verifyHtml + "</p>" : "<p><em>未绑定邮箱</em></p>") +
+            (u.role === "admin" ? '<p><span class="badge ok">管理员</span></p>' : "");
+
+          document.getElementById("profile-form").displayName.value = u.displayName || "";
+          document.getElementById("profile-form").bio.value = u.bio || "";
+          document.getElementById("profile-form").avatar.value = u.avatar || "";
+
+          var rb = document.getElementById("resend-btn");
+          if (rb)
+            rb.addEventListener("click", function () {
+              App.api("/api/resend-verify", { method: "POST" })
+                .then(function () { alert("验证邮件已发送，请查收（开发模式下见服务端日志）。"); })
+                .catch(function (e) { alert("发送失败：" + e.message); });
+            });
+        })
+        .catch(function () { location.href = "login.html"; });
+
+      document.getElementById("profile-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var f = e.target;
+        App.api("/api/me", {
+          method: "PUT",
+          body: { displayName: f.displayName.value.trim(), bio: f.bio.value.trim(), avatar: f.avatar.value.trim() },
+        })
+          .then(function () { document.getElementById("profile-msg").textContent = "资料已保存 ✅"; })
+          .catch(function (err) { document.getElementById("profile-msg").textContent = "保存失败：" + err.message; });
+      });
+
+      document.getElementById("pwd-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var f = e.target;
+        App.api("/api/me", {
+          method: "PUT",
+          body: { currentPassword: f.currentPassword.value, newPassword: f.newPassword.value },
+        })
+          .then(function () {
+            document.getElementById("pwd-msg").textContent = "密码已更新 ✅";
+            f.currentPassword.value = ""; f.newPassword.value = "";
+          })
+          .catch(function (err) { document.getElementById("pwd-msg").textContent = "更新失败：" + err.message; });
+      });
+
+      document.getElementById("delete-btn").addEventListener("click", function () {
+        if (!confirm("注销账号会永久删除你的账号和全部文章，且无法恢复。确定继续吗？")) return;
+        App.api("/api/me", { method: "DELETE" })
+          .then(function () { location.href = "index.html"; })
+          .catch(function (err) { alert("注销失败：" + err.message); });
+      });
+    })();
+  </script>
+</body>
+</html>

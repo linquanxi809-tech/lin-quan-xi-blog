@@ -12,7 +12,6 @@
     <div class="wrap nav-inner">
       <a class="brand" href="index.html"><span class="dot"></span>小站</a>
       <nav class="nav-links">
-        <a class="nav-btn" href="publish.html">✍️ 发布</a>
         <a href="index.html">首页</a>
         <a href="about.html">关于</a>
         <span id="auth-area" class="auth-area"></span>
@@ -28,6 +27,10 @@
       <label class="field">
         <span>用户名</span>
         <input type="text" name="username" placeholder="至少 2 个字符" required />
+      </label>
+      <label class="field" style="margin-top:16px">
+        <span>邮箱（用于验证与找回密码）</span>
+        <input type="email" name="email" placeholder="you@example.com" />
       </label>
       <label class="field" style="margin-top:16px">
         <span>密码</span>
@@ -72,10 +75,14 @@
         msg.textContent = "";
         App.api("/api/register", {
           method: "POST",
-          body: { username: form.username.value.trim(), password: form.password.value },
+          body: {
+            username: form.username.value.trim(),
+            email: form.email.value.trim(),
+            password: form.password.value,
+          },
         })
           .then(function () {
-            location.href = "index.html";
+            location.href = "index.html?welcome=1";
           })
           .catch(function (err) {
             msg.textContent = "注册失败：" + err.message;

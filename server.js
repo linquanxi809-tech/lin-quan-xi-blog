@@ -1,5 +1,5 @@
 /**
- * 小站 · 轻量动态博客后端
+ * 小站 · 轻量动态博客后端（完整账号系统）
  * 零依赖：仅使用 Node 内置模块。
  *
  * 文章存为 <DATA_DIR>/articles/<id>.json
@@ -9,6 +9,17 @@
  * 启动：node server.js   （默认端口 3000，可用 PORT 环境变量覆盖）
  * 数据目录：默认用仓库内的 data/；部署到带持久化磁盘的平台（如 Render）时，
  *           用环境变量 DATA_DIR 指向挂载盘（如 /var/data），避免实例重启/休眠丢数据。
+ *
+ * 账号系统（完整版）：
+ *   - 注册（用户名 + 邮箱 + 密码），注册后发送邮箱验证邮件
+ *   - 登录（支持用户名或邮箱）
+ *   - 退出登录 / 注销账号（连带删除其文章）
+ *   - 个人资料（昵称 / 简介 / 头像）、修改密码
+ *   - 邮箱验证、找回密码（重置令牌）
+ *   - 管理员角色（用户列表 / 删除用户 / 改角色）
+ *
+ * 邮箱发送：若设置了 RESEND_API_KEY 则通过 Resend 真实发送；
+ *           否则进入「开发模式」——仅把验证/重置链接打印到服务端日志，系统仍可完整跑通。
  */
 
 const http = require("http");
@@ -20,22 +31,24 @@ const { URL } = require("url");
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
-// SEED_DIR：仓库内置的初始数据（已提交到 git，部署时随代码一起存在）
 const SEED_DIR = path.join(ROOT, "data");
-// DATA_DIR：运行时真实读写的数据目录。本地默认用仓库内的 data/；
-// 部署到 Render 等带持久化磁盘的平台时，用 DATA_DIR 指向挂载盘。
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : SEED_DIR;
 const ARTICLES_DIR = path.join(DATA_DIR, "articles");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 
 const PORT = process.env.PORT || 3000;
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
+const APP_ORIGIN = process.env.APP_ORIGIN || "https://gh-xiao-wu.de5.net";
+const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@gh-xiao-wu.de5.net";
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 // ---------- 初始化目录 ----------
-// 若数据目录（持久化磁盘）为空，从仓库内置 seed 复制初始文章与用户，
-// 保证首次部署后站点就有内容。
 function seedIfEmpty() {
-  if (DATA_DIR === SEED_DIR) return; // 本地默认路径，无需 seed
+  if (DATA_DIR === SEED_DIR) return;
   const seedArticles = path.join(SEED_DIR, "articles");
   const seedUsers = path.join(SEED_DIR, "users.json");
   let needSeed = false;
@@ -61,6 +74,25 @@ seedIfEmpty();
 fs.mkdirSync(ARTICLES_DIR, { recursive: true });
 if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
 
+// 兼容旧版用户记录：补齐新模型字段（无邮箱的视为已验证，避免被卡在未验证状态）
+(function normalizeUsers() {
+  const users = readUsers();
+  let changed = false;
+  for (const u of users) {
+    if (typeof u.email !== "string") { u.email = ""; changed = true; }
+    if (typeof u.displayName !== "string") { u.displayName = ""; changed = true; }
+    if (typeof u.bio !== "string") { u.bio = ""; changed = true; }
+    if (typeof u.avatar !== "string") { u.avatar = ""; changed = true; }
+    if (u.role !== "user" && u.role !== "admin") { u.role = "user"; changed = true; }
+    if (typeof u.emailVerified !== "boolean") { u.emailVerified = !u.email; changed = true; }
+    if (u.verifyToken === undefined) { u.verifyToken = null; changed = true; }
+    if (u.verifyExpires === undefined) { u.verifyExpires = null; changed = true; }
+    if (u.resetToken === undefined) { u.resetToken = null; changed = true; }
+    if (u.resetExpires === undefined) { u.resetExpires = null; changed = true; }
+  }
+  if (changed) writeUsers(users);
+})();
+
 // ---------- 工具 ----------
 function sendJSON(res, status, obj) {
   const body = JSON.stringify(obj);
@@ -70,7 +102,14 @@ function sendJSON(res, status, obj) {
   });
   res.end(body);
 }
-
+function sendHtml(res, status, html) {
+  const body = Buffer.from(html, "utf8");
+  res.writeHead(status, {
+    "Content-Type": "text/html; charset=utf-8",
+    "Content-Length": body.length,
+  });
+  res.end(body);
+}
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = "";
@@ -95,7 +134,6 @@ function readBody(req) {
     req.on("error", reject);
   });
 }
-
 function parseCookies(req) {
   const header = req.headers.cookie || "";
   const out = {};
@@ -108,14 +146,27 @@ function parseCookies(req) {
   });
   return out;
 }
-
 function setCookie(res, name, value, maxAge) {
   const opts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
   res.setHeader("Set-Cookie", `${name}=${value}; ${opts}`);
 }
-
 function clearCookie(res, name) {
   res.setHeader("Set-Cookie", `${name}=; Path=/; HttpOnly; Max-Age=0`);
+}
+function isEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
+}
+function newId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+function makeSalt() {
+  return crypto.randomBytes(16).toString("hex");
+}
+function hashPassword(pw, salt) {
+  return crypto.scryptSync(pw, salt, 64).toString("hex");
+}
+function randomToken() {
+  return crypto.randomBytes(32).toString("hex");
 }
 
 // ---------- 用户 ----------
@@ -129,16 +180,23 @@ function readUsers() {
 function writeUsers(users) {
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
-function makeSalt() {
-  return crypto.randomBytes(16).toString("hex");
-}
-function hashPassword(pw, salt) {
-  return crypto.scryptSync(pw, salt, 64).toString("hex");
+function publicUser(u) {
+  if (!u) return null;
+  return {
+    id: u.id,
+    username: u.username,
+    email: u.email || "",
+    displayName: u.displayName || "",
+    bio: u.bio || "",
+    avatar: u.avatar || "",
+    role: u.role || "user",
+    emailVerified: !!u.emailVerified,
+    createdAt: u.createdAt,
+  };
 }
 
 // ---------- 会话（内存） ----------
 const sessions = new Map(); // sid -> { userId, expires }
-
 function createSession(userId) {
   const sid = crypto.randomBytes(24).toString("hex");
   sessions.set(sid, { userId, expires: Date.now() + SESSION_TTL });
@@ -155,7 +213,51 @@ function currentUser(req) {
     return null;
   }
   const user = readUsers().find((u) => u.id === s.userId);
-  return user ? { id: user.id, username: user.username } : null;
+  return user ? publicUser(user) : null;
+}
+function currentAdmin(req) {
+  const u = currentUser(req);
+  if (!u || u.role !== "admin") return null;
+  return u;
+}
+
+// ---------- 邮件发送 ----------
+// 真实发送走 Resend；未配置 RESEND_API_KEY 时进入开发模式，仅打印链接到日志。
+async function sendEmail(to, subject, html) {
+  const text = `[邮件] 收件人: ${to}\n主题: ${subject}\n${html}\n`;
+  if (!RESEND_API_KEY) {
+    console.log("=".repeat(40));
+    console.log("[email:dev] 未配置 RESEND_API_KEY，以下为验证/重置链接（生产环境请配置后真实发送）：");
+    console.log(text);
+    console.log("=".repeat(40));
+    return true;
+  }
+  const payload = JSON.stringify({ from: EMAIL_FROM, to, subject, html });
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname: "api.resend.com",
+        path: "/emails",
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + RESEND_API_KEY,
+          "Content-Type": "application/json",
+        },
+      },
+      (resp) => {
+        let buf = "";
+        resp.on("data", (c) => (buf += c));
+        resp.on("end", () => {
+          if (resp.statusCode >= 200 && resp.statusCode < 300) resolve(true);
+          else reject(new Error("邮件发送失败 " + resp.statusCode + ": " + buf));
+        });
+      }
+    );
+    req.on("error", reject);
+    req.setTimeout(8000, () => req.destroy(new Error("邮件请求超时")));
+    req.write(payload);
+    req.end();
+  });
 }
 
 // ---------- 文章 ----------
@@ -189,7 +291,8 @@ function listArticles() {
       tag: a.tag,
       date: a.date,
       readTime: a.readTime,
-      author: a.author,
+      authorId: a.authorId || "",
+      author: a.author || a.authorName || "",
       excerpt: excerpt(a.content),
     }));
 }
@@ -209,14 +312,17 @@ function deleteArticle(id) {
   const file = path.join(ARTICLES_DIR, safeId(id) + ".json");
   if (fs.existsSync(file)) fs.unlinkSync(file);
 }
-function newId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function deleteArticlesByAuthor(userId, username) {
+  const all = listArticles();
+  const mine = all.filter((a) => a.authorId === userId || (username && a.author === username));
+  for (const a of mine) {
+    deleteArticle(a.id);
+    syncDeleteArticleGitHub(a.id).catch(() => {});
+  }
+  return mine.length;
 }
 
-// ---------- 自动同步到 GitHub 仓库（方案②：free 套餐无持久磁盘时的持久化方案）----------
-// 仅当设置了 GH_TOKEN 环境变量时才启用；未设置则完全不触发网络请求，行为与之前一致。
-// 原理：文章以 data/articles/<id>.json 形式提交进仓库，Render 重新部署时会从仓库重新
-// 拉取，因此「推到 GitHub = 持久化」，实例重启/休眠/重部署都不会丢文章。
+// ---------- 自动同步到 GitHub 仓库（free 套餐无持久磁盘时的持久化方案）----------
 const GH_TOKEN = process.env.GH_TOKEN || "";
 const GH_REPO = process.env.GH_REPO || "linquanxi809-tech/lin-quan-xi-blog";
 const GH_BRANCH = process.env.GH_BRANCH || "main";
@@ -262,7 +368,7 @@ async function getGitHubFileSha(repoPath) {
     const json = await ghApiRequest("GET", `/repos/${GH_REPO}/contents/${repoPath}?ref=${GH_BRANCH}`);
     return json && json.sha ? json.sha : null;
   } catch (e) {
-    if (String(e.message).includes("404")) return null; // 文件尚不存在
+    if (String(e.message).includes("404")) return null;
     throw e;
   }
 }
@@ -288,7 +394,7 @@ async function syncDeleteArticleGitHub(id) {
   const repoPath = `data/articles/${safeId(id)}.json`;
   try {
     const sha = await getGitHubFileSha(repoPath);
-    if (!sha) return; // 仓库里本来就没有，无需删除
+    if (!sha) return;
     await ghApiRequest("DELETE", `/repos/${GH_REPO}/contents/${repoPath}`, {
       message: `chore: delete article ${id}`,
       sha,
@@ -299,13 +405,9 @@ async function syncDeleteArticleGitHub(id) {
     console.error("[github] 删除 GitHub 文章失败 " + id + ": " + e.message);
   }
 }
-// 将用户表（users.json）同步回 GitHub 仓库。free 套餐无持久磁盘，注册/注销后必须同步，
-// 否则下次重新部署时运行实例只加载仓库内的旧 users.json，新账号会丢失。
 async function syncUsersToGitHub() {
   if (!githubSyncEnabled()) return;
   const repoPath = "data/users.json";
-  // 带冲突重试：free 套餐下每次同步都会触发重新部署，多个实例可能并发写同一文件，
-  // 出现 sha 冲突(422)时重新读取最新 sha 再写，最多重试 3 次，避免删除被覆盖。
   for (let attempt = 0; attempt < 3; attempt++) {
     const content = Buffer.from(JSON.stringify(readUsers(), null, 2), "utf8").toString("base64");
     try {
@@ -351,7 +453,6 @@ function serveStatic(req, res, pathname) {
   }
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      // SPA 兜底：未知路径回 index.html
       fs.readFile(path.join(PUBLIC_DIR, "index.html"), (e2, d2) => {
         if (e2) {
           res.writeHead(404);
@@ -368,57 +469,115 @@ function serveStatic(req, res, pathname) {
   });
 }
 
+// ---------- 简单的 HTML 页面（用于邮箱验证/重置结果）----------
+function resultPage(title, msg, isOk) {
+  const color = isOk ? "#1f9d6b" : "#d9534f";
+  return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+<style>
+  body{font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f0c1d;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
+  .card{background:#1a1428;border:1px solid #4a3b66;border-radius:14px;padding:32px 40px;text-align:center;max-width:420px}
+  h1{font-size:1.4rem;color:${color};margin:0 0 12px}
+  p{color:#cbb8e8;line-height:1.6;margin:0 0 20px}
+  a{display:inline-block;background:linear-gradient(120deg,#ff6d00,#ffca28);color:#1a1428;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:700}
+</style></head>
+<body><div class="card"><h1>${title}</h1><p>${msg}</p><a href="login.html">前往登录</a></div></body></html>`;
+}
+
 // ---------- API ----------
 async function handleApi(req, res, url) {
-  const parts = url.pathname.split("/").filter(Boolean); // ["api", ...]
-  const seg = parts.slice(1); // 去掉 "api"
+  const parts = url.pathname.split("/").filter(Boolean);
+  const seg = parts.slice(1);
 
-  // /api/me
+  // /api/me (GET) 当前用户信息
   if (seg[0] === "me" && req.method === "GET") {
     const u = currentUser(req);
-    return sendJSON(res, 200, { user: u ? { username: u.username } : null });
+    return sendJSON(res, 200, { user: u });
   }
 
-  // /api/register
+  // /api/verify?token=xxx  邮箱验证（GET，便于邮件链接直接点击）
+  if (seg[0] === "verify" && req.method === "GET") {
+    const token = url.searchParams.get("token");
+    if (!token) return sendHtml(res, 400, resultPage("验证失败", "缺少验证令牌。", false));
+    const users = readUsers();
+    const user = users.find((u) => u.verifyToken === token && u.verifyExpires > Date.now());
+    if (!user) return sendHtml(res, 400, resultPage("验证失败", "令牌无效或已过期，请重新获取验证邮件。", false));
+    user.emailVerified = true;
+    user.verifyToken = null;
+    user.verifyExpires = null;
+    writeUsers(users);
+    await syncUsersToGitHub();
+    return sendHtml(res, 200, resultPage("邮箱已验证 🎉", "你的邮箱已成功验证，现在可以正常使用了。", true));
+  }
+
+  // /api/register 注册
   if (seg[0] === "register" && req.method === "POST") {
     const body = await readBody(req);
     const username = String(body.username || "").trim();
+    const email = String(body.email || "").trim();
     const password = String(body.password || "");
     if (username.length < 2) return sendJSON(res, 400, { error: "用户名至少 2 个字符" });
     if (password.length < 6) return sendJSON(res, 400, { error: "密码至少 6 位" });
+    if (email && !isEmail(email)) return sendJSON(res, 400, { error: "邮箱格式不正确" });
     const users = readUsers();
     if (users.some((u) => u.username === username))
       return sendJSON(res, 409, { error: "用户名已存在" });
+    if (email && users.some((u) => u.email && u.email.toLowerCase() === email.toLowerCase()))
+      return sendJSON(res, 409, { error: "该邮箱已被注册" });
     const salt = makeSalt();
+    const role = ADMIN_USERNAMES.includes(username) || users.length === 0 ? "admin" : "user";
+    const token = randomToken();
     const user = {
       id: newId(),
       username,
+      email,
       salt,
       hash: hashPassword(password, salt),
+      displayName: "",
+      bio: "",
+      avatar: "",
+      role,
+      emailVerified: email ? false : true,
+      verifyToken: email ? token : null,
+      verifyExpires: email ? Date.now() + 1000 * 60 * 60 * 24 : null,
+      resetToken: null,
+      resetExpires: null,
       createdAt: new Date().toISOString(),
     };
     users.push(user);
     writeUsers(users);
-    syncUsersToGitHub(); // 注册新账号后同步到 GitHub，避免重部署后丢失
+    syncUsersToGitHub();
+    if (email) {
+      const link = `${APP_ORIGIN}/api/verify?token=${token}`;
+      await sendEmail(
+        email,
+        "请验证你的邮箱 · 围坐篝火话天下",
+        `<p>你好 ${username}，</p><p>欢迎来到「围坐篝火话天下」！请点击下面的链接验证你的邮箱：</p><p><a href="${link}">${link}</a></p><p>链接 24 小时内有效。</p>`
+      );
+    }
     const sid = createSession(user.id);
     setCookie(res, "sid", sid, SESSION_TTL / 1000);
-    return sendJSON(res, 200, { ok: true, user: { username } });
+    return sendJSON(res, 200, { ok: true, user: publicUser(user) });
   }
 
-  // /api/login
+  // /api/login 登录（支持用户名或邮箱）
   if (seg[0] === "login" && req.method === "POST") {
     const body = await readBody(req);
-    const username = String(body.username || "").trim();
+    const loginId = String(body.username || "").trim();
     const password = String(body.password || "");
-    const user = readUsers().find((u) => u.username === username);
+    const users = readUsers();
+    const user = users.find(
+      (u) => u.username === loginId || (u.email && u.email.toLowerCase() === loginId.toLowerCase())
+    );
     if (!user || hashPassword(password, user.salt) !== user.hash)
-      return sendJSON(res, 401, { error: "用户名或密码错误" });
+      return sendJSON(res, 401, { error: "用户名/邮箱或密码错误" });
     const sid = createSession(user.id);
     setCookie(res, "sid", sid, SESSION_TTL / 1000);
-    return sendJSON(res, 200, { ok: true, user: { username } });
+    return sendJSON(res, 200, { ok: true, user: publicUser(user) });
   }
 
-  // /api/logout
+  // /api/logout 退出登录
   if (seg[0] === "logout" && req.method === "POST") {
     const cookies = parseCookies(req);
     if (cookies.sid) sessions.delete(cookies.sid);
@@ -426,38 +585,156 @@ async function handleApi(req, res, url) {
     return sendJSON(res, 200, { ok: true });
   }
 
-  // /api/me (DELETE) —— 注销用户：删除账号及其全部文章
+  // /api/forgot-password 找回密码（发送重置邮件）
+  if (seg[0] === "forgot-password" && req.method === "POST") {
+    const body = await readBody(req);
+    const email = String(body.email || "").trim();
+    const users = readUsers();
+    const user = users.find((u) => u.email && u.email.toLowerCase() === email.toLowerCase());
+    if (user) {
+      const token = randomToken();
+      user.resetToken = token;
+      user.resetExpires = Date.now() + 1000 * 60 * 60; // 1 小时
+      writeUsers(users);
+      await syncUsersToGitHub();
+      const link = `${APP_ORIGIN}/reset-password.html?token=${token}`;
+      await sendEmail(
+        email,
+        "重置你的密码 · 围坐篝火话天下",
+        `<p>你好，</p><p>我们收到了重置密码的请求。请点击下面的链接设置新密码：</p><p><a href="${link}">${link}</a></p><p>如果该请求不是你发起的，请忽略此邮件。链接 1 小时内有效。</p>`
+      );
+    }
+    // 无论邮箱是否存在都返回成功，避免泄露账号信息
+    return sendJSON(res, 200, { ok: true });
+  }
+
+  // /api/reset-password 重置密码
+  if (seg[0] === "reset-password" && req.method === "POST") {
+    const body = await readBody(req);
+    const token = String(body.token || "");
+    const password = String(body.password || "");
+    if (password.length < 6) return sendJSON(res, 400, { error: "密码至少 6 位" });
+    const users = readUsers();
+    const user = users.find((u) => u.resetToken === token && u.resetExpires > Date.now());
+    if (!user) return sendJSON(res, 400, { error: "重置令牌无效或已过期" });
+    user.salt = makeSalt();
+    user.hash = hashPassword(password, user.salt);
+    user.resetToken = null;
+    user.resetExpires = null;
+    writeUsers(users);
+    syncUsersToGitHub();
+    return sendJSON(res, 200, { ok: true });
+  }
+
+  // /api/me (PUT) 更新资料 / 修改密码
+  if (seg[0] === "me" && req.method === "PUT") {
+    const u = currentUser(req);
+    if (!u) return sendJSON(res, 401, { error: "请先登录" });
+    const users = readUsers();
+    const user = users.find((x) => x.id === u.id);
+    if (!user) return sendJSON(res, 401, { error: "请先登录" });
+    const body = await readBody(req);
+    // 改密码分支
+    if (body.currentPassword || body.newPassword) {
+      if (!body.currentPassword || !body.newPassword)
+        return sendJSON(res, 400, { error: "需同时提供当前密码和新密码" });
+      if (hashPassword(body.currentPassword, user.salt) !== user.hash)
+        return sendJSON(res, 400, { error: "当前密码不正确" });
+      if (String(body.newPassword).length < 6)
+        return sendJSON(res, 400, { error: "新密码至少 6 位" });
+      user.salt = makeSalt();
+      user.hash = hashPassword(body.newPassword, user.salt);
+      writeUsers(users);
+      await syncUsersToGitHub();
+      return sendJSON(res, 200, { ok: true });
+    }
+    // 资料分支
+    if (typeof body.displayName === "string") user.displayName = body.displayName.slice(0, 40);
+    if (typeof body.bio === "string") user.bio = body.bio.slice(0, 200);
+    if (typeof body.avatar === "string") user.avatar = body.avatar.slice(0, 500);
+    writeUsers(users);
+    await syncUsersToGitHub();
+    return sendJSON(res, 200, { ok: true, user: publicUser(user) });
+  }
+
+  // /api/me (DELETE) 注销账号：删除账号及其全部文章
   if (seg[0] === "me" && req.method === "DELETE") {
     const u = currentUser(req);
     if (!u) return sendJSON(res, 401, { error: "请先登录" });
-    // 删除该用户发布的文章（本地 + 同步到 GitHub 的副本）
-    const myArticles = listArticles().filter((a) => a.author === u.username);
-    for (const a of myArticles) {
-      deleteArticle(a.id);
-      try {
-        await syncDeleteArticleGitHub(a.id);
-      } catch (e) {
-        console.error("[github] 删除文章失败 " + a.id + ": " + e.message);
-      }
-    }
-    // 从用户表移除账号
+    const n = deleteArticlesByAuthor(u.id, u.username);
     const users = readUsers().filter((x) => x.id !== u.id);
     writeUsers(users);
-    syncUsersToGitHub(); // 注销后同步到 GitHub，避免重部署后账号复活
-    // 清除会话与 cookie
+    syncUsersToGitHub();
     const cookies = parseCookies(req);
     if (cookies.sid) sessions.delete(cookies.sid);
     clearCookie(res, "sid");
+    return sendJSON(res, 200, { ok: true, deletedArticles: n });
+  }
+
+  // /api/resend-verify 重新发送验证邮件
+  if (seg[0] === "resend-verify" && req.method === "POST") {
+    const u = currentUser(req);
+    if (!u) return sendJSON(res, 401, { error: "请先登录" });
+    const users = readUsers();
+    const user = users.find((x) => x.id === u.id);
+    if (!user || !user.email) return sendJSON(res, 400, { error: "该账号未绑定邮箱" });
+    if (user.emailVerified) return sendJSON(res, 400, { error: "邮箱已验证" });
+    const token = randomToken();
+    user.verifyToken = token;
+    user.verifyExpires = Date.now() + 1000 * 60 * 60 * 24;
+    writeUsers(users);
+    await syncUsersToGitHub();
+    const link = `${APP_ORIGIN}/api/verify?token=${token}`;
+    await sendEmail(
+      user.email,
+      "请验证你的邮箱 · 围坐篝火话天下",
+      `<p>你好 ${user.username}，</p><p>这是新的验证链接：</p><p><a href="${link}">${link}</a></p><p>链接 24 小时内有效。</p>`
+    );
     return sendJSON(res, 200, { ok: true });
+  }
+
+  // ---------- 管理员端点 ----------
+  if (seg[0] === "admin" && seg[1] === "users") {
+    const admin = currentAdmin(req);
+    if (!admin) return sendJSON(res, 403, { error: "需要管理员权限" });
+    // 列表
+    if (seg.length === 2 && req.method === "GET") {
+      const users = readUsers().map(publicUser);
+      return sendJSON(res, 200, { users });
+    }
+    const id = safeId(seg[2]);
+    if (!id) return sendJSON(res, 400, { error: "无效的用户 ID" });
+    // 设置角色
+    if (seg.length === 3 && req.method === "PUT") {
+      const body = await readBody(req);
+      const role = body.role === "admin" ? "admin" : "user";
+      const users = readUsers();
+      const target = users.find((x) => x.id === id);
+      if (!target) return sendJSON(res, 404, { error: "用户不存在" });
+      target.role = role;
+      writeUsers(users);
+      await syncUsersToGitHub();
+      return sendJSON(res, 200, { ok: true, user: publicUser(target) });
+    }
+    // 删除用户
+    if (seg.length === 3 && req.method === "DELETE") {
+      const users = readUsers();
+      const target = users.find((x) => x.id === id);
+      if (!target) return sendJSON(res, 404, { error: "用户不存在" });
+      if (target.id === admin.id) return sendJSON(res, 400, { error: "不能删除自己" });
+      const n = deleteArticlesByAuthor(target.id, target.username);
+      writeUsers(users.filter((x) => x.id !== id));
+      await syncUsersToGitHub();
+      return sendJSON(res, 200, { ok: true, deletedArticles: n });
+    }
+    return sendJSON(res, 405, { error: "方法不被允许" });
   }
 
   // /api/articles
   if (seg[0] === "articles") {
-    // 列表
     if (seg.length === 1 && req.method === "GET") {
       return sendJSON(res, 200, { articles: listArticles() });
     }
-    // 创建（需登录）
     if (seg.length === 1 && req.method === "POST") {
       const u = currentUser(req);
       if (!u) return sendJSON(res, 401, { error: "请先登录" });
@@ -472,15 +749,15 @@ async function handleApi(req, res, url) {
         tag: String(body.tag || "生活"),
         date: String(body.date || new Date().toISOString().slice(0, 10)),
         content,
-        author: String(body.author || u.username),
+        authorId: u.id,
+        author: String(body.author || u.displayName || u.username),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       saveArticle(article);
-      syncArticleToGitHub(article); // 自动同步回 GitHub 仓库（持久化）
+      syncArticleToGitHub(article);
       return sendJSON(res, 200, { ok: true, id });
     }
-    // /api/articles/:id
     const id = safeId(seg[1]);
     if (!id) return sendJSON(res, 400, { error: "无效的文章 ID" });
     if (req.method === "GET") {
@@ -488,18 +765,20 @@ async function handleApi(req, res, url) {
       if (!a) return sendJSON(res, 404, { error: "文章不存在" });
       return sendJSON(res, 200, { article: a });
     }
-    // 修改 / 删除（需登录）
     if (req.method === "PUT" || req.method === "DELETE") {
       const u = currentUser(req);
       if (!u) return sendJSON(res, 401, { error: "请先登录" });
       const existing = getArticle(id);
       if (!existing) return sendJSON(res, 404, { error: "文章不存在" });
+      // 仅作者本人或管理员可修改/删除
+      const isOwner = existing.authorId === u.id || existing.author === u.username;
+      if (!isOwner && u.role !== "admin")
+        return sendJSON(res, 403, { error: "无权操作该文章" });
       if (req.method === "DELETE") {
         deleteArticle(id);
-        syncDeleteArticleGitHub(id); // 同步从 GitHub 仓库删除
+        syncDeleteArticleGitHub(id);
         return sendJSON(res, 200, { ok: true });
       }
-      // PUT
       const body = await readBody(req);
       const updated = {
         ...existing,
@@ -511,7 +790,7 @@ async function handleApi(req, res, url) {
         updatedAt: new Date().toISOString(),
       };
       saveArticle(updated);
-      syncArticleToGitHub(updated); // 自动同步回 GitHub 仓库（持久化）
+      syncArticleToGitHub(updated);
       return sendJSON(res, 200, { ok: true, id });
     }
     return sendJSON(res, 405, { error: "方法不被允许" });
@@ -522,8 +801,6 @@ async function handleApi(req, res, url) {
 
 // ---------- 主服务器 ----------
 const server = http.createServer((req, res) => {
-  // 旧域名跳转：访问 lin-quan-xi-blog.onrender.com 时 301 永久跳转到新域名，
-  // 保留原路径与查询参数；其他 onrender 子域（预览/调试）和本站新域名不受影响。
   const host = (req.headers.host || "").split(":")[0].toLowerCase();
   if (host === "lin-quan-xi-blog.onrender.com") {
     const target = "https://gh-xiao-wu.de5.net" + (req.url || "/");
