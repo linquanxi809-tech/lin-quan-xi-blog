@@ -12,8 +12,8 @@
     "emailVerified": true,
     "verifyToken": null,
     "verifyExpires": null,
-    "resetToken": null,
-    "resetExpires": null,
+    "resetToken": "f736150c592c4342156b6b9c3a0709d4a56ac2986873239ee72e959a29ac6574",
+    "resetExpires": 1788436924740,
     "createdAt": "2026-09-03T10:53:37.331Z"
   }
 ]
