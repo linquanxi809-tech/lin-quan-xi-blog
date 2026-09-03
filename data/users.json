@@ -9,9 +9,9 @@
     "bio": "",
     "avatar": "",
     "role": "admin",
-    "emailVerified": false,
-    "verifyToken": "4062b3f23adbd0d100bd5853bdf5171445d5c587bed0418f1e906ac06a79cfa2",
-    "verifyExpires": 1788519217331,
+    "emailVerified": true,
+    "verifyToken": null,
+    "verifyExpires": null,
     "resetToken": null,
     "resetExpires": null,
     "createdAt": "2026-09-03T10:53:37.331Z"
