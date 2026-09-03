@@ -21,7 +21,7 @@
 
   <section class="section wrap">
     <div class="section-head reveal">
-      <h2><span class="emoji">👤</span> 个人资料</h2>
+      <h2><span class="emoji" id="profile-emoji">👤</span> 个人资料</h2>
     </div>
 
     <div class="editor reveal" style="max-width:520px; margin:0 auto">
@@ -101,6 +101,11 @@
           document.getElementById("profile-form").displayName.value = u.displayName || "";
           document.getElementById("profile-form").bio.value = u.bio || "";
           document.getElementById("profile-form").avatar.value = u.avatar || "";
+
+          if (u.avatar) {
+            document.getElementById("profile-emoji").outerHTML =
+              '<img class="profile-heading-avatar" src="' + App.escapeHtml(u.avatar) + '" alt="" onerror="this.outerHTML=\'<span class=&quot;emoji&quot;>👤</span>\'">';
+          }
 
           var rb = document.getElementById("resend-btn");
           if (rb)
