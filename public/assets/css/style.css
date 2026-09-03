@@ -391,6 +391,28 @@ a:hover {
   margin-right: 4px;
 }
 
+.avatar-preview {
+  margin-bottom: 10px;
+}
+.avatar-preview img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(176, 139, 255, 0.3);
+  background: var(--surface);
+}
+input[name="avatar"].drag-over {
+  border-color: var(--pink);
+  background: rgba(255, 107, 166, 0.06);
+}
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
 .section-head a.more {
   font-weight: 600;
   font-size: 0.95rem;
