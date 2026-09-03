@@ -233,7 +233,7 @@ async function sendEmail(to, subject, html) {
     return true;
   }
   const payload = JSON.stringify({ from: EMAIL_FROM, to, subject, html });
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const req = https.request(
       {
         hostname: "api.resend.com",
@@ -249,12 +249,22 @@ async function sendEmail(to, subject, html) {
         resp.on("data", (c) => (buf += c));
         resp.on("end", () => {
           if (resp.statusCode >= 200 && resp.statusCode < 300) resolve(true);
-          else reject(new Error("邮件发送失败 " + resp.statusCode + ": " + buf));
+          else {
+            console.error("[email] 发送失败 " + resp.statusCode + ": " + buf);
+            resolve(false);
+          }
         });
       }
     );
-    req.on("error", reject);
-    req.setTimeout(8000, () => req.destroy(new Error("邮件请求超时")));
+    req.on("error", (e) => {
+      console.error("[email] 请求出错:", e.message);
+      resolve(false);
+    });
+    req.setTimeout(8000, () => {
+      console.error("[email] 请求超时");
+      req.destroy();
+      resolve(false);
+    });
     req.write(payload);
     req.end();
   });
