@@ -38,8 +38,12 @@
           <textarea name="bio" rows="3" placeholder="一句话介绍自己（最多 200 字）"></textarea>
         </label>
         <label class="field" style="margin-top:16px">
-          <span>头像图片链接</span>
-          <input type="text" name="avatar" placeholder="https://... 图片 URL（可选）" />
+          <span>头像图片</span>
+          <div class="avatar-preview" id="avatar-preview" style="display:none;">
+            <img src="" alt="" onerror="this.parentElement.style.display='none'">
+          </div>
+          <input type="text" name="avatar" id="avatar-input" placeholder="https://... 图片 URL，或拖拽图片到此处" />
+          <small class="field-hint">支持拖拽图片到上方输入框，会自动压缩为 base64 存储</small>
         </label>
         <div class="actions" style="margin-top:20px">
           <button type="submit" class="btn btn-primary">保存资料</button>
@@ -83,6 +87,61 @@
       App.renderAuthUI();
       var info = document.getElementById("profile-info");
 
+      var avatarInput = document.getElementById("avatar-input");
+      var avatarPreviewBox = document.getElementById("avatar-preview");
+      var avatarPreviewImg = avatarPreviewBox.querySelector("img");
+
+      function updateAvatarPreview(src) {
+        if (src && src.trim()) {
+          avatarPreviewImg.src = src;
+          avatarPreviewBox.style.display = "block";
+        } else {
+          avatarPreviewBox.style.display = "none";
+          avatarPreviewImg.src = "";
+        }
+      }
+
+      function resizeImageToBase64(dataUrl, cb) {
+        var img = new Image();
+        img.onload = function () {
+          var w = img.width, h = img.height, max = 256;
+          if (w > h) { if (w > max) { h = Math.round(h * max / w); w = max; } }
+          else { if (h > max) { w = Math.round(w * max / h); h = max; } }
+          var c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          cb(c.toDataURL("image/jpeg", 0.85));
+        };
+        img.src = dataUrl;
+      }
+
+      function handleDroppedFiles(files) {
+        var f = files[0];
+        if (!f) return;
+        if (!f.type.startsWith("image/")) { alert("请上传图片文件"); return; }
+        if (f.size > 5 * 1024 * 1024) { alert("图片太大，请选 5MB 以内的"); return; }
+        var r = new FileReader();
+        r.onload = function (e) {
+          resizeImageToBase64(e.target.result, function (dataUrl) {
+            avatarInput.value = dataUrl;
+            updateAvatarPreview(dataUrl);
+          });
+        };
+        r.readAsDataURL(f);
+      }
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach(function (ev) {
+        avatarInput.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); });
+      });
+      avatarInput.addEventListener("dragenter", function () { this.classList.add("drag-over"); });
+      avatarInput.addEventListener("dragleave", function () { this.classList.remove("drag-over"); });
+      avatarInput.addEventListener("drop", function (e) {
+        this.classList.remove("drag-over");
+        handleDroppedFiles(e.dataTransfer.files);
+      });
+      avatarInput.addEventListener("input", function () { updateAvatarPreview(this.value); });
+
       App.api("/api/me")
         .then(function (data) {
           if (!data.user) {
@@ -101,6 +160,7 @@
           document.getElementById("profile-form").displayName.value = u.displayName || "";
           document.getElementById("profile-form").bio.value = u.bio || "";
           document.getElementById("profile-form").avatar.value = u.avatar || "";
+          updateAvatarPreview(u.avatar || "");
 
           if (u.avatar) {
             document.getElementById("profile-emoji").outerHTML =
