@@ -3,8 +3,8 @@
     "id": "mtleq1ffgets4x",
     "username": "阿酒",
     "email": "linquanxi809@gmail.com",
-    "salt": "e5eb9a59cc632649e05cd66b9d7a6659",
-    "hash": "6d8fc5ca9619a5a688ec0209de260befb8f86a35d10493f9b23433cdf4a64587d022fcef6da9b925625e283069c65ac5cf7559d2c3ec349b9e8df3f594082fb3",
+    "salt": "c1686eae6c9e39997af1c9cc6151acc6",
+    "hash": "aa66b6b905d931a1628cb518d66d8d0ac3b761857f9d8109f7a0a36e71760b292ae2385e62547195bf3794961a0c9195f126784be95fcc012c5e69bc1a0a287a",
     "displayName": "",
     "bio": "",
     "avatar": "",
@@ -12,8 +12,8 @@
     "emailVerified": true,
     "verifyToken": null,
     "verifyExpires": null,
-    "resetToken": "f736150c592c4342156b6b9c3a0709d4a56ac2986873239ee72e959a29ac6574",
-    "resetExpires": 1788436924740,
+    "resetToken": null,
+    "resetExpires": null,
     "createdAt": "2026-09-03T10:53:37.331Z"
   }
 ]
