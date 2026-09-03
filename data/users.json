@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "mtlcoole6xco8i",
+    "username": "_probe",
+    "email": "p@bonfire.test",
+    "salt": "419824c43e190a7fba61337383549cae",
+    "hash": "f2975116a793bd5d03f1c5704c25a1080116f159f114c27eec8b04ad70c822984a850b3d90e29da4ddadb5abba4a3c35577362f0a33a838d35220007a9840a30",
+    "displayName": "",
+    "bio": "",
+    "avatar": "",
+    "role": "admin",
+    "emailVerified": false,
+    "verifyToken": "edc31d594e1b2d7b580d5da28c2694dc3cf3c00047d963f764080a4862b7a279",
+    "verifyExpires": 1788515794815,
+    "resetToken": null,
+    "resetExpires": null,
+    "createdAt": "2026-09-03T09:56:34.815Z"
+  }
+]
