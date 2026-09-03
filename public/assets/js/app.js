@@ -44,7 +44,7 @@ const App = (function () {
         if (user.role === "admin") menu += '<a href="admin.html">用户管理</a>';
         menu += '<a href="#" id="logout-btn">退出登录</a>';
         const avatarHtml = user.avatar
-          ? '<img class="auth-avatar" src="' + escapeHtml(user.avatar) + '" alt="">'
+          ? '<img class="auth-avatar" src="' + escapeHtml(user.avatar) + '" alt="" onerror="this.outerHTML=\'<span class=&quot;auth-emoji&quot; aria-hidden=&quot;true&quot;>👤</span>\'">'
           : '<span class="auth-emoji" aria-hidden="true">👤</span>';
         area.innerHTML =
           '<div class="user-bar">' +
