@@ -23,6 +23,7 @@
  */
 
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -120,7 +121,9 @@ if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
   }
   if (changed) writeUsers(users);
   // 无条件把线上磁盘镜像到仓库：保证 GitHub 副本始终等于生产 users.json（含已降级的 ly）
-  syncUsersToGitHub();
+  if (githubSyncEnabled()) {
+    syncUsersToGitHub().catch((e) => console.error("[enforce] 启动同步 users.json 失败:", e && e.message));
+  }
 })();
 
 // ---------- 工具 ----------
