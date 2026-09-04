@@ -412,6 +412,9 @@ input[name="avatar"].drag-over {
   font-size: 0.8rem;
   color: var(--ink-soft);
 }
+.field.avatar-field {
+  text-align: center;
+}
 
 .section-head a.more {
   font-weight: 600;
