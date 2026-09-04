@@ -395,8 +395,8 @@ a:hover {
   margin-bottom: 10px;
 }
 .avatar-preview img {
-  width: 96px;
-  height: 96px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(176, 139, 255, 0.3);
@@ -416,7 +416,7 @@ input[name="avatar"].drag-over {
   text-align: center;
 }
 .field.avatar-field span {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
 }
 
 .section-head a.more {
