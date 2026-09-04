@@ -45,6 +45,32 @@
           <input type="text" name="avatar" id="avatar-input" placeholder="https://... 图片 URL，或拖拽图片到此处" />
           <small class="field-hint">支持拖拽图片到上方输入框，会自动压缩为 base64 存储</small>
         </label>
+
+        <h3 class="sub">详细资料</h3>
+        <label class="field" style="margin-top:16px">
+          <span>性别</span>
+          <select name="gender">
+            <option value="">保密</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>生日</span>
+          <input type="date" name="birthday" max="9999-12-31" />
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>所在地</span>
+          <input type="text" name="location" placeholder="如：福州" />
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>个人网站</span>
+          <input type="url" name="website" placeholder="https://..." />
+        </label>
+        <label class="field" style="margin-top:16px">
+          <span>职业</span>
+          <input type="text" name="occupation" placeholder="如：学生 / 工程师" />
+        </label>
         <div class="actions" style="margin-top:20px">
           <button type="submit" class="btn btn-primary">保存资料</button>
         </div>
@@ -86,6 +112,18 @@
     (function () {
       App.renderAuthUI();
       var info = document.getElementById("profile-info");
+
+      function calcAge(birthday) {
+        var parts = String(birthday).split("-");
+        if (parts.length !== 3) return null;
+        var b = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        if (isNaN(b.getTime())) return null;
+        var now = new Date();
+        var age = now.getFullYear() - b.getFullYear();
+        var m = now.getMonth() - b.getMonth();
+        if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+        return age;
+      }
 
       var avatarInput = document.getElementById("avatar-input");
       var avatarPreviewBox = document.getElementById("avatar-preview");
@@ -152,14 +190,31 @@
           var verifyHtml = u.emailVerified
             ? '<span class="badge ok">邮箱已验证</span>'
             : '<span class="badge warn">邮箱未验证</span> <button type="button" id="resend-btn" class="btn btn-ghost btn-sm">重新发送验证邮件</button>';
+          var detail = [];
+          if (u.gender) detail.push('<span class="badge">' + App.escapeHtml(u.gender) + '</span>');
+          if (u.birthday) {
+            var age = calcAge(u.birthday);
+            detail.push('<span class="muted">生日 ' + App.escapeHtml(u.birthday) + (age !== null ? '（' + age + ' 岁）' : '') + '</span>');
+          }
+          if (u.location) detail.push('<span class="muted">📍 ' + App.escapeHtml(u.location) + '</span>');
+          if (u.occupation) detail.push('<span class="muted">' + App.escapeHtml(u.occupation) + '</span>');
+          if (u.website) detail.push('<a class="muted" href="' + encodeURI(u.website) + '" target="_blank" rel="noopener">🔗 ' + App.escapeHtml(u.website) + '</a>');
+
           info.innerHTML =
             '<p><strong>用户名：</strong>' + App.escapeHtml(u.username) + "</p>" +
             (u.email ? "<p><strong>邮箱：</strong>" + App.escapeHtml(u.email) + " " + verifyHtml + "</p>" : "<p><em>未绑定邮箱</em></p>") +
-            (u.role === "admin" ? '<p><span class="badge ok">管理员</span></p>' : "");
+            (u.role === "admin" ? '<p><span class="badge ok">管理员</span></p>' : "") +
+            (detail.length ? "<p>" + detail.join(" ") + "</p>" : "");
 
-          document.getElementById("profile-form").displayName.value = u.displayName || "";
-          document.getElementById("profile-form").bio.value = u.bio || "";
-          document.getElementById("profile-form").avatar.value = u.avatar || "";
+          var f = document.getElementById("profile-form");
+          f.displayName.value = u.displayName || "";
+          f.bio.value = u.bio || "";
+          f.avatar.value = u.avatar || "";
+          f.gender.value = u.gender || "";
+          f.birthday.value = u.birthday || "";
+          f.location.value = u.location || "";
+          f.website.value = u.website || "";
+          f.occupation.value = u.occupation || "";
           updateAvatarPreview(u.avatar || "");
 
           if (u.avatar) {
@@ -182,7 +237,16 @@
         var f = e.target;
         App.api("/api/me", {
           method: "PUT",
-          body: { displayName: f.displayName.value.trim(), bio: f.bio.value.trim(), avatar: f.avatar.value.trim() },
+          body: {
+            displayName: f.displayName.value.trim(),
+            bio: f.bio.value.trim(),
+            avatar: f.avatar.value.trim(),
+            gender: f.gender.value,
+            birthday: f.birthday.value,
+            location: f.location.value.trim(),
+            website: f.website.value.trim(),
+            occupation: f.occupation.value.trim(),
+          },
         })
           .then(function () {
           document.getElementById("profile-msg").textContent = "资料已保存 ✅";

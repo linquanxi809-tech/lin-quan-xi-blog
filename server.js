@@ -227,6 +227,11 @@ function publicUser(u) {
     role: u.role || "user",
     emailVerified: !!u.emailVerified,
     createdAt: u.createdAt,
+    gender: u.gender || "",
+    birthday: u.birthday || "",
+    location: u.location || "",
+    website: u.website || "",
+    occupation: u.occupation || "",
   };
 }
 
@@ -802,6 +807,11 @@ async function handleApi(req, res, url) {
     if (typeof body.displayName === "string") user.displayName = body.displayName.slice(0, 40);
     if (typeof body.bio === "string") user.bio = body.bio.slice(0, 200);
     if (typeof body.avatar === "string") user.avatar = body.avatar.slice(0, 500);
+    if (typeof body.gender === "string") user.gender = ["男", "女", "保密"].includes(body.gender) ? body.gender : "";
+    if (typeof body.birthday === "string") user.birthday = /^\d{4}-\d{2}-\d{2}$/.test(body.birthday) ? body.birthday : "";
+    if (typeof body.location === "string") user.location = body.location.slice(0, 60);
+    if (typeof body.website === "string") user.website = body.website.slice(0, 200);
+    if (typeof body.occupation === "string") user.occupation = body.occupation.slice(0, 60);
     writeUsers(users);
     await syncUsersToGitHub();
     return sendJSON(res, 200, { ok: true, user: publicUser(user) });
