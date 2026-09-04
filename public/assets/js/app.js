@@ -125,6 +125,19 @@ const App = (function () {
       .join("");
   }
 
+  // 更新左上角「勇者聚集人数」
+  async function updateOnlineCount() {
+    try {
+      const data = await api("/api/online-count");
+      const el = document.querySelector(".online-num");
+      if (el) el.textContent = String(data.count || 0);
+    } catch (e) {
+      // 失败时保持原样，不抛错
+    }
+  }
+  updateOnlineCount();
+  setInterval(updateOnlineCount, 30000);
+
   // HTML -> 文本（编辑时回填）
   function htmlToText(el) {
     var out = [];

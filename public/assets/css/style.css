@@ -95,6 +95,9 @@ a:hover {
   background: linear-gradient(135deg, var(--pink), var(--purple));
   box-shadow: 0 0 0 4px rgba(255, 107, 166, 0.18);
 }
+.brand-text {
+  white-space: nowrap;
+}
 
 .nav-links {
   display: flex;

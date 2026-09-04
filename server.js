@@ -234,7 +234,7 @@ function publicUser(u) {
 const sessions = new Map(); // sid -> { userId, expires }
 function createSession(userId) {
   const sid = crypto.randomBytes(24).toString("hex");
-  sessions.set(sid, { userId, expires: Date.now() + SESSION_TTL });
+  sessions.set(sid, { userId, expires: Date.now() + SESSION_TTL, lastSeen: Date.now() });
   return sid;
 }
 function currentUser(req) {
@@ -247,6 +247,7 @@ function currentUser(req) {
     sessions.delete(sid);
     return null;
   }
+  s.lastSeen = Date.now();
   const user = readUsers().find((u) => u.id === s.userId);
   return user ? publicUser(user) : null;
 }
@@ -254,6 +255,14 @@ function currentAdmin(req) {
   const u = currentUser(req);
   if (!u || u.role !== "admin") return null;
   return u;
+}
+function onlineCount() {
+  const cutoff = Date.now() - 5 * 60 * 1000; // 5 分钟内活跃
+  let n = 0;
+  for (const s of sessions.values()) {
+    if ((s.lastSeen || s.expires - SESSION_TTL) > cutoff) n++;
+  }
+  return n;
 }
 
 // ---------- 邮件发送 ----------
@@ -629,6 +638,12 @@ async function handleApi(req, res, url) {
   if (seg[0] === "me" && req.method === "GET") {
     const u = currentUser(req);
     return sendJSON(res, 200, { user: u });
+  }
+
+  // /api/online-count (GET) 在线人数：统计 5 分钟内活跃的会话
+  if (seg[0] === "online-count" && req.method === "GET") {
+    currentUser(req); // 有会话时刷新当前用户的最后活跃时间
+    return sendJSON(res, 200, { count: onlineCount() });
   }
 
   // /api/verify?token=xxx  邮箱验证（GET，便于邮件链接直接点击）
