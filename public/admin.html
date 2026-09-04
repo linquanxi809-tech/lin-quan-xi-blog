@@ -49,16 +49,19 @@
               return;
             }
             listEl.innerHTML = data.users.map(function (u) {
-              var roleBtn = u.role === "admin"
-                ? '<button class="btn btn-ghost btn-sm" data-act="role" data-id="' + u.id + '" data-role="user">降级为普通用户</button>'
+              var isAdmin = u.role === "admin";
+              var roleBtn = isAdmin
+                ? ''
                 : '<button class="btn btn-ghost btn-sm" data-act="role" data-id="' + u.id + '" data-role="admin">设为管理员</button>';
+              var delBtn = isAdmin
+                ? ''
+                : '<button class="btn btn-danger btn-sm" data-act="del" data-id="' + u.id + '">删除</button>';
               return '<div class="user-row">' +
                 '<div><strong>' + App.escapeHtml(u.username) + '</strong>' +
                 (u.email ? ' <span class="muted">' + App.escapeHtml(u.email) + '</span>' : '') +
                 ' ' + (u.emailVerified ? '<span class="badge ok">已验证</span>' : '<span class="badge warn">未验证</span>') +
-                ' <span class="badge">' + (u.role === "admin" ? "管理员" : "用户") + '</span></div>' +
-                '<div class="user-actions">' + roleBtn +
-                '<button class="btn btn-danger btn-sm" data-act="del" data-id="' + u.id + '">删除</button></div>' +
+                ' <span class="badge">' + (isAdmin ? "管理员" : "用户") + '</span></div>' +
+                '<div class="user-actions">' + roleBtn + delBtn + '</div>' +
               '</div>';
             }).join("");
           })

@@ -846,6 +846,7 @@ async function handleApi(req, res, url) {
       const users = readUsers();
       const target = users.find((x) => x.id === id);
       if (!target) return sendJSON(res, 404, { error: "用户不存在" });
+      if (target.role === "admin") return sendJSON(res, 400, { error: "不能修改管理员角色" });
       target.role = role;
       writeUsers(users);
       await syncUsersToGitHub();
@@ -856,6 +857,7 @@ async function handleApi(req, res, url) {
       const users = readUsers();
       const target = users.find((x) => x.id === id);
       if (!target) return sendJSON(res, 404, { error: "用户不存在" });
+      if (target.role === "admin") return sendJSON(res, 400, { error: "不能删除管理员" });
       if (target.id === admin.id) return sendJSON(res, 400, { error: "不能删除自己" });
       const n = deleteArticlesByAuthor(target.id, target.username);
       writeUsers(users.filter((x) => x.id !== id));
