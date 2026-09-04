@@ -118,10 +118,9 @@ if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
       console.log("[enforce] 已将越权管理员降级为普通用户: " + (u.username || u.email));
     }
   }
-  if (changed) {
-    writeUsers(users);
-    syncUsersToGitHub();
-  }
+  if (changed) writeUsers(users);
+  // 无条件把线上磁盘镜像到仓库：保证 GitHub 副本始终等于生产 users.json（含已降级的 ly）
+  syncUsersToGitHub();
 })();
 
 // ---------- 工具 ----------
