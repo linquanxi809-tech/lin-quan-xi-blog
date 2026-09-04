@@ -103,6 +103,27 @@ if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
   if (changed) writeUsers(users);
 })();
 
+// 仅站长可为管理员：任何非站长的 admin 启动时强制降级为普通用户（处理历史遗留的越权 admin）
+(function enforceOwnerAdmin() {
+  const users = readUsers();
+  let changed = false;
+  for (const u of users) {
+    if (
+      u.role === "admin" &&
+      !OWNER_IDS.includes(u.username) &&
+      !OWNER_IDS.includes(u.email)
+    ) {
+      u.role = "user";
+      changed = true;
+      console.log("[enforce] 已将越权管理员降级为普通用户: " + (u.username || u.email));
+    }
+  }
+  if (changed) {
+    writeUsers(users);
+    syncUsersToGitHub();
+  }
+})();
+
 // ---------- 工具 ----------
 function sendJSON(res, status, obj) {
   const body = JSON.stringify(obj);
