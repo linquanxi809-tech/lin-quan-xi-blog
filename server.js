@@ -1,6 +1,6 @@
 /**
  * 小站 · 轻量动态博客后端（完整账号系统）
- * 邮箱发送通过 Resend（见 RESEND_API_KEY）；入站邮件转发由 Forward Email 在 DNS 层完成，不经本站服务器。
+ * 邮箱发送通过 Gmail SMTP（smtp.gmail.com:465，见 GMAIL_USER / GMAIL_APP_PASSWORD）；入站邮件转发由 Forward Email 在 DNS 层完成，不经本站服务器。
  *
  * 文章存为 <DATA_DIR>/articles/<id>.json
  * 用户存为 <DATA_DIR>/users.json
@@ -18,16 +18,16 @@
  *   - 邮箱验证、找回密码（重置令牌）
  *   - 管理员角色（用户列表 / 删除用户 / 改角色）
  *
- * 邮箱发送：若设置了 RESEND_API_KEY 则通过 Resend 真实发送；
+ * 邮箱发送：若配置了 GMAIL_USER + GMAIL_APP_PASSWORD 则通过 Gmail SMTP 真实发送；
  *           否则进入「开发模式」——仅把验证/重置链接打印到服务端日志，系统仍可完整跑通。
  */
 
 const http = require("http");
-const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { URL } = require("url");
+const tls = require("tls");
 
 // 入站邮件转发已迁移到 Forward Email（DNS 层：mail.gh-xiao-wu.de5.net 的 MX/TXT 在 DNSHe 配置），
 // 邮件不经本站服务器，故不再需要 Resend SDK 与 postal-mime。
@@ -42,8 +42,11 @@ const USERS_FILE = path.join(DATA_DIR, "users.json");
 const PORT = process.env.PORT || 3000;
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
 const APP_ORIGIN = process.env.APP_ORIGIN || "https://gh-xiao-wu.de5.net";
-const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@gh-xiao-wu.de5.net";
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+// 发信改走 Gmail SMTP（smtp.gmail.com:465，隐式 TLS）。需配置 GMAIL_USER + GMAIL_APP_PASSWORD。
+// 原 Resend 方案因根域 CNAME→Render 致子域 DKIM 永远验证不过，已弃用。
+const GMAIL_USER = process.env.GMAIL_USER || "linquanxi809@gmail.com";
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
+const EMAIL_FROM = process.env.EMAIL_FROM || GMAIL_USER;
 const FORWARD_TO = process.env.FORWARD_TO || "linquanxi809@gmail.com";
 const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
   .split(",")
@@ -258,52 +261,139 @@ function onlineCount() {
 }
 
 // ---------- 邮件发送 ----------
-// 真实发送走 Resend；未配置 RESEND_API_KEY 时进入开发模式，仅打印链接到日志。
+// 发信后端：Gmail SMTP（smtp.gmail.com:465，隐式 TLS，零依赖——用内置 tls 模块自实现 SMTP 客户端）。
+// 需配置 GMAIL_USER（发件 Gmail 账号）+ GMAIL_APP_PASSWORD（Google「应用专用密码」，16 位）。
+// 未配置时进入「开发模式」——仅把验证/重置链接打印到服务端日志，系统仍可完整跑通。
+const SMTP_HOST = "smtp.gmail.com";
+const SMTP_PORT = 465;
+
+// 读取 SMTP 服务端响应，直到遇到终结行（以 3 位数字 + 空格开头）。
+function makeSmtpClient(socket) {
+  let buf = "";
+  const waiters = [];
+  function check() {
+    while (true) {
+      const idx = buf.indexOf("\r\n");
+      if (idx === -1) break;
+      const line = buf.slice(0, idx);
+      buf = buf.slice(idx + 2);
+      // 仅以「数字+空格」结尾的响应行才解除等待；「数字-」续行忽略。
+      if (/^\d{3}\s/.test(line)) {
+        const w = waiters.shift();
+        if (w) w.resolve({ code: parseInt(line.slice(0, 3), 10), text: line });
+      }
+    }
+  }
+  socket.on("data", (data) => {
+    buf += data.toString("utf8");
+    check();
+  });
+  function cmd(command) {
+    return new Promise((resolve) => {
+      waiters.push({ resolve });
+      if (command !== null) socket.write(command + "\r\n");
+      check(); // 处理已到达的缓冲数据
+    });
+  }
+  return { cmd };
+}
+
+function buildMimeMessage({ from, to, subject, html }) {
+  const boundary = "bnd-" + crypto.randomBytes(10).toString("hex");
+  const plain = String(html || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const head = [
+    "From: " + from,
+    "To: " + to,
+    "Subject: =?UTF-8?B?" + Buffer.from(subject || "").toString("base64") + "?=",
+    "MIME-Version: 1.0",
+    'Content-Type: multipart/alternative; boundary="' + boundary + '"',
+    "",
+    "--" + boundary,
+    "Content-Type: text/plain; charset=UTF-8",
+    "Content-Transfer-Encoding: 7bit",
+    "",
+    plain,
+    "",
+    "--" + boundary,
+    "Content-Type: text/html; charset=UTF-8",
+    "Content-Transfer-Encoding: 7bit",
+    "",
+    html,
+    "",
+    "--" + boundary + "--",
+  ];
+  return head.join("\r\n");
+}
+
+async function sendViaGmail({ user, pass, from, to, subject, html }) {
+  const socket = await new Promise((resolve, reject) => {
+    const s = tls
+      .connect(SMTP_PORT, SMTP_HOST, { servername: SMTP_HOST }, () => resolve(s))
+      .on("error", reject);
+    s.setTimeout(20000, () => s.destroy(new Error("SMTP 连接超时")));
+  });
+  const client = makeSmtpClient(socket);
+  const fail = (msg) => {
+    throw new Error(msg);
+  };
+  try {
+    let r = await client.cmd(null); // 220 握手
+    if (r.code !== 220) fail("SMTP 握手失败: " + r.text);
+    r = await client.cmd("EHLO " + SMTP_HOST);
+    if (r.code !== 250) fail("EHLO 失败: " + r.text);
+    r = await client.cmd("AUTH LOGIN");
+    if (r.code !== 334) fail("AUTH 失败: " + r.text);
+    r = await client.cmd(Buffer.from(user).toString("base64"));
+    if (r.code !== 334) fail("Gmail 账号错误: " + r.text);
+    r = await client.cmd(Buffer.from(pass).toString("base64"));
+    if (r.code !== 235) fail("Gmail 应用专用密码错误: " + r.text);
+    r = await client.cmd("MAIL FROM:<" + from + ">");
+    if (r.code !== 250) fail("MAIL FROM 失败: " + r.text);
+    r = await client.cmd("RCPT TO:<" + to + ">");
+    if (r.code !== 250) fail("RCPT TO 失败: " + r.text);
+    r = await client.cmd("DATA");
+    if (r.code !== 354) fail("DATA 失败: " + r.text);
+    let body = buildMimeMessage({ from, to, subject, html });
+    body = body.replace(/^\./gm, ".."); // dot-stuffing，避免正文以 "." 开头的行被误判为结束
+    r = await client.cmd(body + "\r\n.");
+    if (r.code !== 250) fail("邮件提交失败: " + r.text);
+    await client.cmd("QUIT");
+    return true;
+  } finally {
+    try {
+      socket.destroy();
+    } catch {
+      /* noop */
+    }
+  }
+}
+
 async function sendEmail(to, subject, html) {
   const text = `[邮件] 收件人: ${to}\n主题: ${subject}\n${html}\n`;
-  if (!RESEND_API_KEY) {
+  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
     console.log("=".repeat(40));
-    console.log("[email:dev] 未配置 RESEND_API_KEY，以下为验证/重置链接（生产环境请配置后真实发送）：");
+    console.log("[email:dev] 未配置 GMAIL_USER / GMAIL_APP_PASSWORD，以下为验证/重置链接（生产环境请配置后真实发送）：");
     console.log(text);
     console.log("=".repeat(40));
     return true;
   }
-  const payload = JSON.stringify({ from: EMAIL_FROM, to, subject, html });
-  return new Promise((resolve) => {
-    const req = https.request(
-      {
-        hostname: "api.resend.com",
-        path: "/emails",
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + RESEND_API_KEY,
-          "Content-Type": "application/json",
-        },
-      },
-      (resp) => {
-        let buf = "";
-        resp.on("data", (c) => (buf += c));
-        resp.on("end", () => {
-          if (resp.statusCode >= 200 && resp.statusCode < 300) resolve(true);
-          else {
-            console.error("[email] 发送失败 " + resp.statusCode + ": " + buf);
-            resolve(false);
-          }
-        });
-      }
-    );
-    req.on("error", (e) => {
-      console.error("[email] 请求出错:", e.message);
-      resolve(false);
+  try {
+    return await sendViaGmail({
+      user: GMAIL_USER,
+      pass: GMAIL_APP_PASSWORD,
+      from: GMAIL_USER,
+      to,
+      subject,
+      html,
     });
-    req.setTimeout(8000, () => {
-      console.error("[email] 请求超时");
-      req.destroy();
-      resolve(false);
-    });
-    req.write(payload);
-    req.end();
-  });
+  } catch (e) {
+    console.error("[email] Gmail SMTP 发送异常:", e && e.message);
+    return false;
+  }
 }
 
 // 入站邮件转发已迁移到 Forward Email（DNS 层，mail.gh-xiao-wu.de5.net 的 MX/TXT 在 DNSHe 配置），
