@@ -1,6 +1,6 @@
 /**
  * 小站 · 轻量动态博客后端（完整账号系统）
- * 收信转发（Resend inbound → Gmail）使用 resend SDK；用受保护加载，未安装时自动降级不影响博客。
+ * 邮箱发送通过 Resend（见 RESEND_API_KEY）；入站邮件转发由 Forward Email 在 DNS 层完成，不经本站服务器。
  *
  * 文章存为 <DATA_DIR>/articles/<id>.json
  * 用户存为 <DATA_DIR>/users.json
@@ -29,20 +29,8 @@ const path = require("path");
 const crypto = require("crypto");
 const { URL } = require("url");
 
-// Resend SDK：仅用于收信 webhook 转发到 Gmail。受保护加载——未安装时自动降级，不影响博客其它功能。
-let Resend = null;
-try {
-  ({ Resend } = require("resend"));
-} catch (e) {
-  console.warn("[inbound] resend SDK 未加载，收信转发功能不可用");
-}
-// postal-mime：解析收信原始邮件，便于转发时保留正文/附件并带上原发送者（reply_to）。受保护加载。
-let postalMime = null;
-try {
-  postalMime = require("postal-mime");
-} catch (e) {
-  console.warn("[inbound] postal-mime 未加载，转发将退回官方 forward（不带原发送者）");
-}
+// 入站邮件转发已迁移到 Forward Email（DNS 层：mail.gh-xiao-wu.de5.net 的 MX/TXT 在 DNSHe 配置），
+// 邮件不经本站服务器，故不再需要 Resend SDK 与 postal-mime。
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
@@ -56,10 +44,6 @@ const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
 const APP_ORIGIN = process.env.APP_ORIGIN || "https://gh-xiao-wu.de5.net";
 const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@gh-xiao-wu.de5.net";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-// 收信处理（receiving.get / attachments.list）需要收信读权限，仅发信 key 会 403；
-// 故用独立的 Full Access key，未设置时回退到 RESEND_API_KEY 以保持兼容。
-const RESEND_INBOUND_API_KEY = process.env.RESEND_INBOUND_API_KEY || RESEND_API_KEY;
-const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || "";
 const FORWARD_TO = process.env.FORWARD_TO || "linquanxi809@gmail.com";
 const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
   .split(",")
@@ -322,90 +306,8 @@ async function sendEmail(to, subject, html) {
   });
 }
 
-// ---------- 收信转发（Resend inbound webhook → Gmail） ----------
-// Resend 收到发往 mail.gh-xiao-wu.de5.net 的邮件后，会 POST 一个 email.received 事件到这里；
-// 我们校验 Svix 签名，再调用 Resend 官方 forward 把邮件原样转发到 FORWARD_TO（Gmail）。
-async function handleResendInbound(req, res) {
-  if (!Resend) {
-    return sendJSON(res, 500, { error: "resend SDK 未加载，收信转发不可用" });
-  }
-  if (!RESEND_WEBHOOK_SECRET) {
-    return sendJSON(res, 500, { error: "未配置 RESEND_WEBHOOK_SECRET" });
-  }
-  let raw = "";
-  try {
-    raw = await readRawBody(req);
-  } catch (e) {
-    return sendJSON(res, 400, { error: "读取请求体失败" });
-  }
-  const id = req.headers["svix-id"];
-  const timestamp = req.headers["svix-timestamp"];
-  const signature = req.headers["svix-signature"];
-  if (!id || !timestamp || !signature) {
-    return sendJSON(res, 400, { error: "缺少 Svix 签名头" });
-  }
-  try {
-    const resend = new Resend(RESEND_INBOUND_API_KEY);
-    const event = resend.webhooks.verify({
-      payload: raw,
-      headers: { id, timestamp, signature },
-      webhookSecret: RESEND_WEBHOOK_SECRET,
-    });
-    if (event && event.type === "email.received") {
-      const emailId = event.data && event.data.email_id;
-      if (emailId) {
-        try {
-          const emailResp = await resend.emails.receiving.get(emailId);
-          const email = (emailResp && emailResp.data) || {};
-          const originalSender = email.from || "";
-          const originalSubject = email.subject || "(无主题)";
-          const rawUrl = email.raw && email.raw.download_url;
-          if (rawUrl && postalMime) {
-            // 解析原始邮件，原样转发正文/附件，并把「原发送者」放进 reply_to、主题前缀显示发件人
-            try {
-              const pm = postalMime.default || postalMime;
-              const rawContent = await fetch(rawUrl).then((r) => r.text());
-              const parsed = await pm.parse(rawContent, { attachmentEncoding: "base64" });
-              const attachments = (parsed.attachments || []).map((a) => ({
-                filename: a.filename,
-                content: a.content.toString(),
-                content_type: a.mimeType,
-                content_id: a.contentId ? a.contentId.replace(/^<|>$/g, "") : undefined,
-              }));
-              const { error } = await resend.emails.send({
-                from: EMAIL_FROM,
-                to: FORWARD_TO,
-                replyTo: originalSender || undefined,
-                subject: `来自 ${originalSender || "某人"}：「${originalSubject}」`,
-                text: parsed.text || undefined,
-                html: parsed.html || undefined,
-                attachments: attachments.length ? attachments : undefined,
-              });
-              if (error) throw new Error(JSON.stringify(error));
-              console.log("[inbound] 已转发邮件", emailId, "→", FORWARD_TO, "| 原发送者:", originalSender);
-            } catch (customErr) {
-              console.error("[inbound] 自定义转发失败，回退官方 forward:", customErr && customErr.message);
-              const fb = await resend.emails.receiving.forward({ emailId, to: FORWARD_TO, from: EMAIL_FROM });
-              if (fb.error) console.error("[inbound] 回退转发也失败:", fb.error);
-              else console.log("[inbound] 已转发邮件(回退)", emailId, "→", FORWARD_TO);
-            }
-          } else {
-            // raw 不可得或无 postal-mime：用官方 forward 兜底（仍可用，只是不带 reply_to）
-            const { error } = await resend.emails.receiving.forward({ emailId, to: FORWARD_TO, from: EMAIL_FROM });
-            if (error) console.error("[inbound] 转发失败:", error);
-            else console.log("[inbound] 已转发邮件", emailId, "→", FORWARD_TO);
-          }
-        } catch (getErr) {
-          console.error("[inbound] 获取邮件详情失败:", getErr && getErr.message);
-        }
-      }
-    }
-    return sendJSON(res, 200, { ok: true });
-  } catch (e) {
-    console.error("[inbound] 签名校验失败:", e && e.message);
-    return sendJSON(res, 401, { error: "签名校验失败" });
-  }
-}
+// 入站邮件转发已迁移到 Forward Email（DNS 层，mail.gh-xiao-wu.de5.net 的 MX/TXT 在 DNSHe 配置），
+// 邮件不经本站服务器，故无需 Resend inbound webhook 与 postal-mime 解析。
 
 // ---------- 文章 ----------
 function safeId(id) {
@@ -636,11 +538,6 @@ function resultPage(title, msg, isOk) {
 async function handleApi(req, res, url) {
   const parts = url.pathname.split("/").filter(Boolean);
   const seg = parts.slice(1);
-
-  // /api/resend-inbound  Resend 收信 webhook：校验签名后转发到 Gmail
-  if (seg[0] === "resend-inbound" && req.method === "POST") {
-    return handleResendInbound(req, res);
-  }
 
   // /api/me (GET) 当前用户信息
   if (seg[0] === "me" && req.method === "GET") {
