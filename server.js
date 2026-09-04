@@ -56,6 +56,9 @@ const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
 const APP_ORIGIN = process.env.APP_ORIGIN || "https://gh-xiao-wu.de5.net";
 const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@gh-xiao-wu.de5.net";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+// 收信处理（receiving.get / attachments.list）需要收信读权限，仅发信 key 会 403；
+// 故用独立的 Full Access key，未设置时回退到 RESEND_API_KEY 以保持兼容。
+const RESEND_INBOUND_API_KEY = process.env.RESEND_INBOUND_API_KEY || RESEND_API_KEY;
 const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || "";
 const FORWARD_TO = process.env.FORWARD_TO || "linquanxi809@gmail.com";
 const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
@@ -342,7 +345,7 @@ async function handleResendInbound(req, res) {
     return sendJSON(res, 400, { error: "缺少 Svix 签名头" });
   }
   try {
-    const resend = new Resend(RESEND_API_KEY);
+    const resend = new Resend(RESEND_INBOUND_API_KEY);
     const event = resend.webhooks.verify({
       payload: raw,
       headers: { id, timestamp, signature },
