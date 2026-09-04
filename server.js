@@ -372,14 +372,16 @@ async function sendViaGmail({ user, pass, from, to, subject, html }) {
   }
 }
 
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, link) {
   const text = `[邮件] 收件人: ${to}\n主题: ${subject}\n${html}\n`;
   if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
     console.log("=".repeat(40));
     console.log("[email:dev] 未配置 GMAIL_USER / GMAIL_APP_PASSWORD，以下为验证/重置链接（生产环境请配置后真实发送）：");
     console.log(text);
+    if (link) console.log("[email:dev] 链接:", link);
     console.log("=".repeat(40));
-    return true;
+    // 开发模式：把链接返回给前端直接展示，使注册/找回密码在无邮件服务时也能走通
+    return link || true;
   }
   try {
     return await sendViaGmail({
@@ -659,6 +661,7 @@ async function handleApi(req, res, url) {
   // /api/register 注册
   if (seg[0] === "register" && req.method === "POST") {
     const body = await readBody(req);
+    let devLinkReturn;
     const username = String(body.username || "").trim();
     const email = String(body.email || "").trim();
     const password = String(body.password || "");
@@ -695,15 +698,17 @@ async function handleApi(req, res, url) {
     syncUsersToGitHub();
     if (email) {
       const link = `${APP_ORIGIN}/api/verify?token=${token}`;
-      await sendEmail(
+      const devLink = await sendEmail(
         email,
         "请验证你的邮箱 · 围坐篝火话天下",
-        `<p>你好 ${username}，</p><p>欢迎来到「围坐篝火话天下」！请点击下面的链接验证你的邮箱：</p><p><a href="${link}">${link}</a></p><p>链接 24 小时内有效。</p>`
+        `<p>你好 ${username}，</p><p>欢迎来到「围坐篝火话天下」！请点击下面的链接验证你的邮箱：</p><p><a href="${link}">${link}</a></p><p>链接 24 小时内有效。</p>`,
+        link
       );
+      if (typeof devLink === "string") devLinkReturn = devLink;
     }
     const sid = createSession(user.id);
     setCookie(res, "sid", sid, SESSION_TTL / 1000);
-    return sendJSON(res, 200, { ok: true, user: publicUser(user) });
+    return sendJSON(res, 200, { ok: true, user: publicUser(user), devLink: typeof devLinkReturn === "string" ? devLinkReturn : undefined });
   }
 
   // /api/login 登录（支持用户名或邮箱）
@@ -743,14 +748,16 @@ async function handleApi(req, res, url) {
       writeUsers(users);
       await syncUsersToGitHub();
       const link = `${APP_ORIGIN}/reset-password.html?token=${token}`;
-      await sendEmail(
+      const devLink = await sendEmail(
         email,
         "重置你的密码 · 围坐篝火话天下",
-        `<p>你好，</p><p>我们收到了重置密码的请求。请点击下面的链接设置新密码：</p><p><a href="${link}">${link}</a></p><p>如果该请求不是你发起的，请忽略此邮件。链接 1 小时内有效。</p>`
+        `<p>你好，</p><p>我们收到了重置密码的请求。请点击下面的链接设置新密码：</p><p><a href="${link}">${link}</a></p><p>如果该请求不是你发起的，请忽略此邮件。链接 1 小时内有效。</p>`,
+        link
       );
+      if (typeof devLink === "string") var devResetLink = devLink;
     }
     // 无论邮箱是否存在都返回成功，避免泄露账号信息
-    return sendJSON(res, 200, { ok: true });
+    return sendJSON(res, 200, { ok: true, devLink: typeof devResetLink === "string" ? devResetLink : undefined });
   }
 
   // /api/reset-password 重置密码
@@ -836,12 +843,13 @@ async function handleApi(req, res, url) {
     writeUsers(users);
     await syncUsersToGitHub();
     const link = `${APP_ORIGIN}/api/verify?token=${token}`;
-    await sendEmail(
+    const devLink = await sendEmail(
       user.email,
       "请验证你的邮箱 · 围坐篝火话天下",
-      `<p>你好 ${user.username}，</p><p>这是新的验证链接：</p><p><a href="${link}">${link}</a></p><p>链接 24 小时内有效。</p>`
+      `<p>你好 ${user.username}，</p><p>这是新的验证链接：</p><p><a href="${link}">${link}</a></p><p>链接 24 小时内有效。</p>`,
+      link
     );
-    return sendJSON(res, 200, { ok: true });
+    return sendJSON(res, 200, { ok: true, devLink: typeof devLink === "string" ? devLink : undefined });
   }
 
   // ---------- 管理员端点 ----------
