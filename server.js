@@ -52,6 +52,9 @@ const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+// 仅站长（主机管理 / linquanxi809@gmail.com）可为管理员；其余用户一律只能是普通用户。
+// 任何非站长的 admin 都会在启动时自动降级，且注册/后台都无法将其提升为 admin。
+const OWNER_IDS = ["主机管理", "linquanxi809@gmail.com"];
 
 // ---------- 初始化目录 ----------
 function seedIfEmpty() {
@@ -866,11 +869,14 @@ async function handleApi(req, res, url) {
     // 设置角色
     if (seg.length === 3 && req.method === "PUT") {
       const body = await readBody(req);
-      const role = body.role === "admin" ? "admin" : "user";
       const users = readUsers();
       const target = users.find((x) => x.id === id);
       if (!target) return sendJSON(res, 404, { error: "用户不存在" });
-      if (target.role === "admin") return sendJSON(res, 400, { error: "不能修改管理员角色" });
+      // 仅站长为管理员：站长永远是 admin，其余用户永远是普通用户（后台无法提权，也无法降权站长）
+      const isOwnerTarget = OWNER_IDS.includes(target.username) || OWNER_IDS.includes(target.email);
+      const role = isOwnerTarget ? "admin" : "user";
+      if (target.role === "admin" && role !== "admin")
+        return sendJSON(res, 400, { error: "不能修改管理员角色" });
       target.role = role;
       writeUsers(users);
       await syncUsersToGitHub();
