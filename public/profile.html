@@ -226,7 +226,27 @@
           if (rb)
             rb.addEventListener("click", function () {
               App.api("/api/resend-verify", { method: "POST" })
-                .then(function () { alert("验证邮件已发送，请查收（开发模式下见服务端日志）。"); })
+                .then(function (data) {
+                  if (data && data.devLink) {
+                    // 邮件服务未配置时的兜底：直接展示验证链接
+                    var box = document.getElementById("resend-result");
+                    if (!box) {
+                      box = document.createElement("div");
+                      box.id = "resend-result";
+                      box.className = "hint";
+                      rb.parentNode.insertBefore(box, rb.nextSibling);
+                    }
+                    box.innerHTML =
+                      "邮件服务未配置，请手动点击此链接完成验证：<br><a href=\"" +
+                      data.devLink +
+                      "\" style=\"color:#ffca28;word-break:break-all\">" +
+                      data.devLink +
+                      "</a>";
+                    box.style.color = "#cbb8e8";
+                  } else {
+                    alert("验证邮件已发送，请查收（开发模式下见服务端日志）。");
+                  }
+                })
                 .catch(function (e) { alert("发送失败：" + e.message); });
             });
         })
