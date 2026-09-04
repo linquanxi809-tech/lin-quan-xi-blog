@@ -796,6 +796,7 @@ async function handleApi(req, res, url) {
   if (seg[0] === "me" && req.method === "DELETE") {
     const u = currentUser(req);
     if (!u) return sendJSON(res, 401, { error: "请先登录" });
+    if (u.role === "admin") return sendJSON(res, 400, { error: "管理员账号不可注销" });
     const n = deleteArticlesByAuthor(u.id, u.username);
     const users = readUsers().filter((x) => x.id !== u.id);
     writeUsers(users);
