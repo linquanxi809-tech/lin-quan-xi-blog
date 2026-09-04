@@ -81,8 +81,19 @@
             password: form.password.value,
           },
         })
-          .then(function () {
-            location.href = "index.html?welcome=1";
+          .then(function (data) {
+            if (data && data.devLink) {
+              // 邮件服务未配置时的兜底：直接展示验证链接
+              msg.innerHTML =
+                '邮件服务未配置，请手动点击下面的链接完成验证：<br><a href="' +
+                data.devLink +
+                '" style="color:#ffca28;word-break:break-all">' +
+                data.devLink +
+                "</a>";
+              msg.style.color = "#cbb8e8";
+            } else {
+              location.href = "index.html?welcome=1";
+            }
           })
           .catch(function (err) {
             msg.textContent = "注册失败：" + err.message;
