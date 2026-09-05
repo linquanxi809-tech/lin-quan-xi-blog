@@ -57,6 +57,11 @@ const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || "")
 // 任何非站长的 admin 都会在启动时自动降级，且注册/后台都无法将其提升为 admin。
 const OWNER_IDS = ["主机管理", "linquanxi809@gmail.com"];
 
+// 自动同步到 GitHub 仓库所需环境变量（提前声明，供启动迁移在模块加载早期调用）
+const GH_TOKEN = process.env.GH_TOKEN || "";
+const GH_REPO = process.env.GH_REPO || "linquanxi809-tech/lin-quan-xi-blog";
+const GH_BRANCH = process.env.GH_BRANCH || "main";
+
 // ---------- 初始化目录 ----------
 function seedIfEmpty() {
   if (DATA_DIR === SEED_DIR) return;
@@ -490,9 +495,6 @@ function deleteArticlesByAuthor(userId, username) {
 }
 
 // ---------- 自动同步到 GitHub 仓库（free 套餐无持久磁盘时的持久化方案）----------
-const GH_TOKEN = process.env.GH_TOKEN || "";
-const GH_REPO = process.env.GH_REPO || "linquanxi809-tech/lin-quan-xi-blog";
-const GH_BRANCH = process.env.GH_BRANCH || "main";
 function githubSyncEnabled() {
   return !!GH_TOKEN;
 }
