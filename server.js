@@ -124,10 +124,12 @@ if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
       console.log("[enforce] 已将越权管理员降级为普通用户: " + (u.username || u.email));
     }
   }
-  if (changed) writeUsers(users);
-  // 无条件把线上磁盘镜像到仓库：保证 GitHub 副本始终等于生产 users.json（含已降级的 ly）
-  if (githubSyncEnabled()) {
-    syncUsersToGitHub().catch((e) => console.error("[enforce] 启动同步 users.json 失败:", e && e.message));
+  if (changed) {
+    writeUsers(users);
+    // 仅在确有越权 admin 被降级时才把磁盘镜像到仓库；避免每次启动都推送产生部署死循环
+    if (githubSyncEnabled()) {
+      syncUsersToGitHub().catch((e) => console.error("[enforce] 同步 users.json 失败:", e && e.message));
+    }
   }
 })();
 
