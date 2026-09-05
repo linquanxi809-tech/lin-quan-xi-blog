@@ -505,6 +505,19 @@ function deleteArticlesByAuthor(userId, username) {
 function githubSyncEnabled() {
   return !!GH_TOKEN;
 }
+// 同步失败时重试，避免瞬时网络抖动导致文章/用户数据丢失
+async function withRetry(fn, attempts = 3, baseDelay = 400) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, baseDelay * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
 function ghApiRequest(method, apiPath, bodyObj) {
   return new Promise((resolve, reject) => {
     const data = bodyObj ? JSON.stringify(bodyObj) : null;
@@ -561,12 +574,12 @@ async function syncArticleToGitHub(article) {
       }
     }
     const sha = existing ? existing.sha : null;
-    await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
+    await withRetry(() => ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
       message: `chore: sync article ${article.id}`,
       content,
       branch: GH_BRANCH,
       ...(sha ? { sha } : {}),
-    });
+    }));
     console.log("[github] 已同步文章到仓库: " + article.id);
   } catch (e) {
     console.error("[github] 同步文章失败 " + article.id + ": " + e.message);
