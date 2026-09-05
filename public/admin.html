@@ -50,7 +50,9 @@
             }
             listEl.innerHTML = data.users.map(function (u) {
               var isAdmin = u.role === "admin";
-              var roleBtn = isAdmin
+              var isOwner = !!u.isOwner;
+              // 只有站长（且当前不是 admin）才可能出现「设为管理员」；普通用户永远没有该按钮
+              var roleBtn = (isAdmin || !isOwner)
                 ? ''
                 : '<button class="btn btn-ghost btn-sm" data-act="role" data-id="' + u.id + '" data-role="admin">设为管理员</button>';
               var delBtn = isAdmin

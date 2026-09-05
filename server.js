@@ -253,6 +253,7 @@ function publicUser(u) {
     bio: u.bio || "",
     avatar: u.avatar || "",
     role: u.role || "user",
+    isOwner: OWNER_IDS.includes(u.username) || OWNER_IDS.includes(u.email || ""),
     emailVerified: !!u.emailVerified,
     createdAt: u.createdAt,
     gender: u.gender || "",
