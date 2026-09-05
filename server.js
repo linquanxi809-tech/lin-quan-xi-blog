@@ -133,6 +133,11 @@ if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, "[]");
   }
 })();
 
+// 启动全量同步：把磁盘上现存文章补齐进 GitHub 仓库（幂等；仅推送仓库中尚不存在的，避免部署死循环）
+if (githubSyncEnabled()) {
+  syncAllArticlesToGitHub().catch((e) => console.error("[boot] 全量文章同步失败:", e && e.message));
+}
+
 // ---------- 工具 ----------
 function sendJSON(res, status, obj) {
   const body = JSON.stringify(obj);
@@ -548,7 +553,14 @@ async function syncArticleToGitHub(article) {
   const repoPath = `data/articles/${safeId(article.id)}.json`;
   const content = Buffer.from(JSON.stringify(article, null, 2), "utf8").toString("base64");
   try {
-    const sha = await getGitHubFileSha(repoPath);
+    const existing = await ghApiRequest("GET", `/repos/${GH_REPO}/contents/${repoPath}?ref=${GH_BRANCH}`).catch(() => null);
+    if (existing && existing.content) {
+      const cur = Buffer.from(existing.content, "base64").toString("utf8");
+      if (cur.trim() === Buffer.from(content, "base64").toString("utf8").trim()) {
+        return; // 内容已一致，跳过 —— 幂等，避免重复提交与部署死循环
+      }
+    }
+    const sha = existing ? existing.sha : null;
     await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
       message: `chore: sync article ${article.id}`,
       content,
@@ -575,6 +587,19 @@ async function syncDeleteArticleGitHub(id) {
   } catch (e) {
     console.error("[github] 删除 GitHub 文章失败 " + id + ": " + e.message);
   }
+}
+// 启动全量同步：把磁盘上现存文章补齐进 GitHub 仓库（幂等，仅推送仓库中尚不存在的，避免部署死循环）
+async function syncAllArticlesToGitHub() {
+  if (!githubSyncEnabled()) return;
+  const all = listArticles();
+  let pushed = 0;
+  for (const a of all) {
+    const existed = await getGitHubFileSha(`data/articles/${safeId(a.id)}.json`);
+    if (existed) continue; // 已在仓库且内容一致（幂等），跳过避免重复提交
+    await syncArticleToGitHub(a).catch(() => {});
+    pushed++;
+  }
+  console.log(`[github] 启动全量文章同步：磁盘 ${all.length} 篇，本次新推送 ${pushed} 篇`);
 }
 async function syncUsersToGitHub() {
   if (!githubSyncEnabled()) return;
