@@ -1200,6 +1200,58 @@ input[name="avatar"].drag-over {
   color: var(--amber);
 }
 
+.wspeak {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin-left: 6px;
+  font-size: 12px;
+  line-height: 1;
+  vertical-align: middle;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wspeak:hover {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: rgba(181, 121, 58, 0.1);
+}
+.wspeak:active {
+  transform: scale(0.92);
+}
+.wspeak.big {
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+}
+
+.wmeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  margin-top: 7px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.wmeta b {
+  font-weight: 500;
+  color: var(--teal);
+}
+.wtag {
+  background: rgba(63, 111, 106, 0.1);
+  color: #2f5753;
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
 .word-scene {
   margin-top: 22px;
   background: rgba(181, 121, 58, 0.12);
@@ -1503,8 +1555,15 @@ input[name="avatar"].drag-over {
   min-width: 36px;
 }
 .wb-mean {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   font-size: 0.85rem;
   color: var(--ink-soft);
+}
+.wb-today-top {
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 640px) {
