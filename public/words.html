@@ -175,7 +175,7 @@
           "</span></div>" +
           '<div class="wmask"><span class="wmask-word">' +
           E(w.word) +
-          "</span></div>" +
+          "</span>" + App.speakBtn(w.word, "big") + "</div>" +
           '<p class="wclue">线索：' +
           E(w.clue || w.meaning) +
           "</p>" +
@@ -194,6 +194,16 @@
           '<p class="wtip">' +
           E(w.tip) +
           "</p>" +
+          (w.synonyms && w.synonyms.length
+            ? '<div class="wmeta"><b>近义</b>' +
+              w.synonyms.map(function (s) { return '<span class="wtag">' + E(s) + "</span>"; }).join("") +
+              "</div>"
+            : "") +
+          (w.derivatives && w.derivatives.length
+            ? '<div class="wmeta"><b>派生</b>' +
+              w.derivatives.map(function (s) { return '<span class="wtag">' + E(s) + "</span>"; }).join("") +
+              "</div>"
+            : "") +
           "</div>" +
           '<button class="wbtn" type="button">' +
           (revealed ? "盖住" : "揭晓") +
@@ -203,6 +213,7 @@
       }
 
       function bindCards(root) {
+        App.bindSpeak(root);
         root.querySelectorAll(".wcard").forEach(function (card) {
           var btn = card.querySelector(".wbtn");
           if (!btn) return;
