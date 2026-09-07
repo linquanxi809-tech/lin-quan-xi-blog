@@ -1092,6 +1092,72 @@ input[name="avatar"].drag-over {
   color: var(--ink-soft);
 }
 
+/* ── 轮播：一词一卡 ── */
+.word-carousel {
+  max-width: 420px;
+  margin: 0 auto;
+  position: relative;
+}
+.word-carousel .wcard {
+  animation: cFadeIn 0.35s ease;
+}
+@keyframes cFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+.cnav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow);
+}
+.cnav-btn:hover:not(:disabled) {
+  border-color: var(--amber);
+  color: var(--amber);
+  box-shadow: var(--shadow-hover);
+}
+.cnav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.cnav-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cnav-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.cnav-dot.active {
+  background: var(--brick);
+  transform: scale(1.25);
+}
+.cnav-dot:hover:not(.active) {
+  background: var(--amber);
+}
+
 .word-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -1100,11 +1166,11 @@ input[name="avatar"].drag-over {
 .wcard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 16px 18px;
+  padding: 22px 24px;
   box-shadow: var(--shadow);
 }
 .wcard-top {
@@ -1129,7 +1195,7 @@ input[name="avatar"].drag-over {
   padding: 4px 0 2px;
 }
 .wmask-word {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   letter-spacing: 1px;
   filter: blur(7px);
