@@ -55,7 +55,15 @@
           "example": "We need accurate data before making a decision.",
           "exampleCn": "做决定前我们需要准确的数据。",
           "tip": "ac-（加强）+ cura（关心、照料，如 cure 治愈）→ 用心照料细节 → 精确。反义：inaccurate",
-          "clue": "形容数据、计时「分毫不差」，反义加前缀 in-（a 开头，8 个字母）"
+          "clue": "形容数据、计时「分毫不差」，反义加前缀 in-（a 开头，8 个字母）",
+          "synonyms": [
+            "exact",
+            "precise"
+          ],
+          "derivatives": [
+            "accuracy",
+            "accurately"
+          ]
         }
       ],
       "updatedAt": "2026-09-07T10:00:00.000Z"
