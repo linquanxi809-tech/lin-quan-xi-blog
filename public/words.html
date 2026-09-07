@@ -76,13 +76,25 @@
     <div class="word-alpha" id="alpha-bar" aria-label="A 到 Z 进度"></div>
 
     <div class="word-toolbar">
-      <button class="btn btn-sm" type="button" id="btn-reveal-all">👀 全部揭晓</button>
-      <button class="btn btn-sm" type="button" id="btn-hide-all">🙈 全部盖住</button>
-      <span class="word-hint">点卡片也可单独揭晓</span>
+      <button class="btn btn-sm" type="button" id="btn-reveal">👀 揭晓</button>
+      <button class="btn btn-sm" type="button" id="btn-hide">🙈 盖住</button>
+      <span class="word-hint">点卡片或按键盘 ← → 切换</span>
     </div>
 
-    <div class="word-cards" id="word-list">
+    <!-- 轮播容器：一词一卡 -->
+    <div class="word-carousel" id="word-carousel">
       <p style="color:var(--ink-soft)">正在加载单词…</p>
+    </div>
+
+    <!-- 轮播导航 -->
+    <div class="carousel-nav" id="carousel-nav" hidden>
+      <button class="cnav-btn cnav-prev" type="button" id="card-prev" aria-label="上一个">
+        ◀
+      </button>
+      <div class="cnav-dots" id="cnav-dots"></div>
+      <button class="cnav-btn cnav-next" type="button" id="card-next" aria-label="下一个">
+        ▶
+      </button>
     </div>
 
     <div class="word-scene" id="word-scene" hidden></div>
@@ -170,6 +182,7 @@
           '">' +
           '<div class="wcard-top"><span class="wnum">' +
           String(i + 1).padStart(2, "0") +
+          ' / <span class="wtotal">' + (entry.words || []).length + '</span>' +
           '</span><span class="wpos">' +
           E(w.pos) +
           "</span></div>" +
@@ -212,6 +225,53 @@
         );
       }
 
+      /* ── 轮播状态 ── */
+      var curIdx = 0;
+      var curWords = [];
+
+      function showCard(idx, entry) {
+        if (!curWords.length) return;
+        idx = ((idx % curWords.length) + curWords.length) % curWords.length;
+        curIdx = idx;
+        var carousel = document.getElementById("word-carousel");
+        var nav = document.getElementById("carousel-nav");
+        // 渲染当前卡片
+        carousel.innerHTML = cardHtml(entry, curWords[idx], idx, false);
+        bindCards(carousel);
+        App.bindSpeak(carousel);
+        // 更新导航点
+        var dots = document.getElementById("cnav-dots");
+        dots.innerHTML = curWords
+          .map(function (_, j) {
+            return (
+              '<span class="cnav-dot' + (j === idx ? " active" : '') + '" data-idx="' + j + '"></span>'
+            );
+          })
+          .join("");
+        dots.querySelectorAll(".cnav-dot").forEach(function (d) {
+          d.addEventListener("click", function () { showCard(+d.dataset.idx, entry); });
+        });
+        // 按钮状态
+        document.getElementById("card-prev").disabled = idx === 0;
+        document.getElementById("card-next").disabled = idx === curWords.length - 1;
+        nav.hidden = curWords.length <= 1;
+      }
+
+      function revealCurrent() {
+        var card = document.querySelector("#word-carousel .wcard");
+        if (!card) return;
+        card.classList.add("open");
+        var btn = card.querySelector(".wbtn");
+        if (btn) btn.textContent = "盖住";
+      }
+      function hideCurrent() {
+        var card = document.querySelector("#word-carousel .wcard");
+        if (!card) return;
+        card.classList.remove("open");
+        var btn = card.querySelector(".wbtn");
+        if (btn) btn.textContent = "揭晓";
+      }
+
       function bindCards(root) {
         App.bindSpeak(root);
         root.querySelectorAll(".wcard").forEach(function (card) {
@@ -225,7 +285,6 @@
       }
 
       function renderDay(entry, isToday) {
-        var list = document.getElementById("word-list");
         var title = document.getElementById("today-title");
         var chip = document.getElementById("today-chip");
         title.textContent = isToday
@@ -234,12 +293,9 @@
         chip.textContent =
           "第 " + cycDay(entry) + " 天 · 字母 " + (entry.letter || "?") +
           (entry.book && bookNames[entry.book] ? " · " + bookNames[entry.book] : "");
-        list.innerHTML = (entry.words || [])
-          .map(function (w, i) {
-            return cardHtml(entry, w, i, !isToday);
-          })
-          .join("");
-        bindCards(list);
+        curWords = entry.words || [];
+        curIdx = 0;
+        showCard(0, entry);
         var scene = document.getElementById("word-scene");
         if (entry.scene) {
           scene.hidden = false;
@@ -306,20 +362,21 @@
           var entry = (want && all.filter(function (e) { return e.date === want; })[0]) || all[0];
           renderDay(entry, !want || entry.date === all[0].date);
           renderArchive(entry.date);
-          document.getElementById("btn-reveal-all").onclick = function () {
-            document.querySelectorAll("#word-list .wcard").forEach(function (c) {
-              c.classList.add("open");
-              var b = c.querySelector(".wbtn");
-              if (b) b.textContent = "盖住";
-            });
+          document.getElementById("btn-reveal").onclick = function () { revealCurrent(); };
+          document.getElementById("btn-hide").onclick = function () { hideCurrent(); };
+          document.getElementById("card-prev").onclick = function () {
+            var entry = (want && all.filter(function (e) { return e.date === want; })[0]) || all[0];
+            showCard(curIdx - 1, entry);
           };
-          document.getElementById("btn-hide-all").onclick = function () {
-            document.querySelectorAll("#word-list .wcard").forEach(function (c) {
-              c.classList.remove("open");
-              var b = c.querySelector(".wbtn");
-              if (b) b.textContent = "揭晓";
-            });
+          document.getElementById("card-next").onclick = function () {
+            var entry = (want && all.filter(function (e) { return e.date === want; })[0]) || all[0];
+            showCard(curIdx + 1, entry);
           };
+          // 键盘导航
+          document.addEventListener("keydown", function (ev) {
+            if (ev.key === "ArrowLeft") document.getElementById("card-prev").click();
+            if (ev.key === "ArrowRight") document.getElementById("card-next").click();
+          });
         })
         .catch(function (err) {
           document.getElementById("word-list").innerHTML =
