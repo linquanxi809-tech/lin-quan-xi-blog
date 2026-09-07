@@ -1197,6 +1197,8 @@ async function handleApi(req, res, url) {
           exampleCn: String((w && w.exampleCn) || "").trim(),
           tip: String((w && w.tip) || "").trim(),
           clue: String((w && w.clue) || "").trim(),
+          synonyms: Array.isArray(w && w.synonyms) ? w.synonyms.map((s) => String(s).trim()).filter(Boolean) : [],
+          derivatives: Array.isArray(w && w.derivatives) ? w.derivatives.map((s) => String(s).trim()).filter(Boolean) : [],
         }))
         .filter((w) => w.word);
       if (!words.length) return sendJSON(res, 400, { error: "至少要有一个单词" });
