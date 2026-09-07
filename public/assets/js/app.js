@@ -165,6 +165,46 @@ const App = (function () {
     return out.filter(Boolean).join("\n\n");
   }
 
+  // 单词朗读（浏览器内置 Web Speech API，无需外部资源）
+  function canSpeak() {
+    return typeof window !== "undefined" && !!window.speechSynthesis;
+  }
+  function speak(word, lang) {
+    var w = String(word || "").trim();
+    if (!w || !canSpeak()) return false;
+    try {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(w);
+      u.lang = lang || "en-US";
+      u.rate = 0.9;
+      u.pitch = 1;
+      window.speechSynthesis.speak(u);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  // 生成一个小喇叭按钮（配合 bindSpeak 生效）
+  function speakBtn(word, extraClass) {
+    return (
+      '<button class="wspeak ' + (extraClass || "") + '" type="button" data-speak="' +
+      escapeHtml(word) +
+      '" title="朗读「' + escapeHtml(word) + '」" aria-label="朗读 ' + escapeHtml(word) + '">🔊</button>'
+    );
+  }
+  // 给容器内所有 .wspeak 绑定点击朗读
+  function bindSpeak(root) {
+    (root || document).querySelectorAll(".wspeak").forEach(function (btn) {
+      if (btn.dataset.speakBound === "1") return;
+      btn.dataset.speakBound = "1";
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var w = btn.getAttribute("data-speak");
+        if (!speak(w)) btn.title = "当前浏览器不支持朗读";
+      });
+    });
+  }
+
   return {
     api: api,
     tagClass: tagClass,
@@ -172,5 +212,9 @@ const App = (function () {
     escapeHtml: escapeHtml,
     textToHtml: textToHtml,
     htmlToText: htmlToText,
+    speak: speak,
+    speakBtn: speakBtn,
+    bindSpeak: bindSpeak,
+    canSpeak: canSpeak,
   };
 })();
