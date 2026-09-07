@@ -32,7 +32,15 @@
           "example": "It takes time to absorb so much new information.",
           "exampleCn": "消化这么多新信息需要时间。",
           "tip": "ab-（离开）+ sorb（吸吮）→ 吸走。派生：absorbed adj. 专注的（be absorbed in）；absorption n.",
-          "clue": "海绵「吸走」水分，或「消化理解」大量新信息（a 开头，6 个字母）"
+          "clue": "海绵「吸走」水分，或「消化理解」大量新信息（a 开头，6 个字母）",
+          "synonyms": [
+            "soak up",
+            "take in"
+          ],
+          "derivatives": [
+            "absorbed",
+            "absorption"
+          ]
         },
         {
           "word": "abundant",
@@ -59,7 +67,16 @@
           "example": "She has accumulated ten years of teaching experience.",
           "exampleCn": "她积累了十年的教学经验。",
           "tip": "ac-（朝向）+ cumul（堆积，如 cumulus 积云）→ 越堆越高。派生：accumulation n.",
-          "clue": "经验、财富「一天天堆起来」，词根 cumul = 堆积（a 开头，10 个字母）"
+          "clue": "经验、财富「一天天堆起来」，词根 cumul = 堆积（a 开头，10 个字母）",
+          "synonyms": [
+            "amass",
+            "collect",
+            "pile up"
+          ],
+          "derivatives": [
+            "accumulation",
+            "accumulative"
+          ]
         },
         {
           "word": "accurate",
