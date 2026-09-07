@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>词书库 · 围坐篝火话天下</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <meta name="description" content="分级与学科英语词书库：小学、初中、高中、四六级、考研、雅思托福、商务、医学、数学、理工、人文社科、学术与生僻词。" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div id="loader" class="loader">
+    <svg class="pixel-scene" viewBox="0 0 120 130" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="78" cy="22" r="11" fill="#ffe082"/>
+      <rect x="20" y="18" width="2" height="2" fill="#ffffff" opacity="0.8"/>
+      <rect x="32" y="30" width="2" height="2" fill="#ffffff" opacity="0.6"/>
+      <rect x="72" y="14" width="2" height="2" fill="#ffffff" opacity="0.7"/>
+      <rect x="8" y="104" width="104" height="10" fill="#2a1d18"/>
+      <polygon points="34,64 60,42 86,64" fill="#5d4037"/>
+      <rect x="38" y="64" width="44" height="40" fill="#6d4c41"/>
+      <rect x="56" y="82" width="12" height="22" fill="#3e2723"/>
+      <rect x="64" y="92" width="2" height="3" fill="#ffca28"/>
+      <rect class="window-glow" x="44" y="74" width="10" height="10" fill="#ffd54f"/>
+      <rect x="44" y="74" width="10" height="10" fill="none" stroke="#3e2723" stroke-width="1"/>
+      <rect x="51" y="98" width="20" height="4" fill="#5d4037"/>
+      <rect x="54" y="95" width="14" height="3" fill="#4e342e"/>
+      <g class="fire">
+        <rect x="56" y="88" width="12" height="12" fill="#d84315"/>
+        <rect x="58" y="82" width="8" height="10" fill="#ff6d00"/>
+        <rect x="60" y="75" width="4" height="9" fill="#ff8f00"/>
+      </g>
+      <g class="fire-inner">
+        <rect x="59" y="84" width="6" height="10" fill="#ffca28"/>
+        <rect x="60" y="78" width="4" height="8" fill="#fff176"/>
+        <rect x="61" y="72" width="2" height="6" fill="#fffde7"/>
+      </g>
+      <circle class="spark" cx="62" cy="76" r="1.6" fill="#ffab40"/>
+      <circle class="spark s2" cx="57" cy="78" r="1.3" fill="#ffca28"/>
+      <circle class="spark s3" cx="66" cy="76" r="1.4" fill="#ff7043"/>
+    </svg>
+    <p class="loader-text">休憩者的小屋 · 加载中</p>
+    <div class="loader-bar"><span></span></div>
+  </div>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span><span class="brand-text">勇者聚集人数 · <span class="online-num">0</span>人</span></a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <a href="words.html">单词</a>
+        <a href="wordbook.html" class="active">词书</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero wrap">
+    <span class="badge">📚 14 本词书 · 近 800 词</span>
+    <h1>词书<span class="hl">库</span></h1>
+    <p>小学、初中、高中、四六级、考研、雅思托福、商务、医学、数学、理工、人文社科、学术与生僻词。挑一本，每天 5 个按 A→Z 推进。</p>
+    <div>
+      <a class="btn btn-primary" href="#books">📖 挑词书</a>
+      <a class="btn btn-ghost" href="words.html">🔤 今日单词</a>
+    </div>
+  </section>
+
+  <section class="section wrap" id="books">
+    <div class="section-head reveal">
+      <h2><span class="emoji">🗂️</span> 全部词书</h2>
+      <span class="word-progress-chip" id="active-chip">当前推送：加载中</span>
+    </div>
+    <div class="wb-grid" id="book-grid">
+      <p style="color:var(--ink-soft)">正在加载词书…</p>
+    </div>
+  </section>
+
+  <section class="section wrap" id="detail" hidden>
+    <div class="section-head reveal">
+      <h2><span class="emoji">🔍</span> <span id="detail-title">词表</span></h2>
+      <button class="btn btn-sm" type="button" id="set-active" hidden>✅ 设为每日推送词书</button>
+    </div>
+    <div class="wb-today" id="wb-today"></div>
+    <div class="wb-tools">
+      <input class="wb-search" id="wb-search" type="search" placeholder="搜索单词或中文释义…" />
+      <span class="wb-count" id="wb-count"></span>
+    </div>
+    <div class="wb-alpha" id="wb-alpha"></div>
+    <div class="wb-list" id="wb-list"></div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="social">
+        <a href="https://home.gamer.com.tw/profile/index.php?owner=YangXi2025" title="我的巴哈姆特主页" aria-label="我的巴哈姆特主页">
+          <img class="bahamut-icon" src="assets/images/bahamut-icon.png" alt="巴哈姆特" />
+        </a>
+      </div>
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      var E = App.escapeHtml;
+      var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+      var books = [];
+      var current = null;
+      var isAdmin = false;
+      var activeBook = "";
+      var filterLetter = "";
+      var keyword = "";
+
+      function todayLetter() {
+        var base = new Date("2026-09-07T00:00:00");
+        var d = new Date();
+        var now = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        var n = Math.floor((now - base) / 86400000);
+        var idx = ((n % 26) + 26) % 26;
+        return LETTERS[idx];
+      }
+
+      function pickFive(words, letter) {
+        var sorted = words.slice().sort(function (a, b) {
+          return a.word.localeCompare(b.word);
+        });
+        var L = String(letter).toUpperCase();
+        var start = -1;
+        for (var i = 0; i < sorted.length; i++) {
+          if (sorted[i].word.charAt(0).toUpperCase() >= L) { start = i; break; }
+        }
+        if (start < 0) start = 0;
+        var out = [];
+        for (var k = 0; k < 5 && k < sorted.length; k++) {
+          out.push(sorted[(start + k) % sorted.length]);
+        }
+        return out;
+      }
+
+      function renderBooks() {
+        var box = document.getElementById("book-grid");
+        box.innerHTML = books
+          .map(function (b) {
+            return (
+              '<button class="wb-card' + (b.id === activeBook ? " active" : "") + '" type="button" data-id="' + E(b.id) + '">' +
+              '<span class="wb-card-level">' + E(b.level || "词汇") + "</span>" +
+              '<span class="wb-card-name">' + E(b.name) + "</span>" +
+              '<span class="wb-card-desc">' + E(b.desc) + "</span>" +
+              '<span class="wb-card-foot"><span class="wb-chip">' + b.count + " 词</span>" +
+              (b.id === activeBook ? '<span class="wb-flag">每日推送中</span>' : "") +
+              "</span></button>"
+            );
+          })
+          .join("");
+        box.querySelectorAll(".wb-card").forEach(function (el) {
+          el.addEventListener("click", function () {
+            openBook(el.getAttribute("data-id"));
+          });
+        });
+        document.getElementById("active-chip").textContent =
+          "当前推送：" + ((books.filter(function (b) { return b.id === activeBook; })[0] || {}).name || "未设置");
+      }
+
+      function openBook(id) {
+        App.api("/api/wordbooks/" + encodeURIComponent(id))
+          .then(function (data) {
+            current = data.book;
+            filterLetter = "";
+            keyword = "";
+            document.getElementById("wb-search").value = "";
+            document.getElementById("detail").hidden = false;
+            document.getElementById("detail-title").textContent = current.name + " · " + current.words.length + " 词";
+            var btn = document.getElementById("set-active");
+            btn.hidden = !isAdmin;
+            btn.textContent = current.id === activeBook ? "✅ 已是每日推送词书" : "✅ 设为每日推送词书";
+            renderToday();
+            renderAlpha();
+            renderList();
+            document.getElementById("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+          })
+          .catch(function (err) {
+            alert("加载词书失败：" + err.message);
+          });
+      }
+
+      function renderToday() {
+        var five = pickFive(current.words, todayLetter());
+        document.getElementById("wb-today").innerHTML =
+          '<div class="wb-today-head">今日 5 词 · 字母 ' + todayLetter() + "</div>" +
+          '<div class="wb-today-words">' +
+          five
+            .map(function (w) {
+              return (
+                '<span class="wb-today-item"><b>' + E(w.word) + "</b>" +
+                '<i>' + E(w.phonetic || "") + "</i>" +
+                "<span>" + E(w.meaning) + "</span></span>"
+              );
+            })
+            .join("") +
+          "</div>";
+      }
+
+      function renderAlpha() {
+        var have = {};
+        current.words.forEach(function (w) {
+          have[w.word.charAt(0).toUpperCase()] = true;
+        });
+        document.getElementById("wb-alpha").innerHTML =
+          '<span class="wb-cell' + (filterLetter === "" ? " on" : "") + '" data-l="">全部</span>' +
+          LETTERS.map(function (L) {
+            if (!have[L]) return '<span class="wb-cell off">' + L + "</span>";
+            return '<span class="wb-cell' + (filterLetter === L ? " on" : "") + '" data-l="' + L + '">' + L + "</span>";
+          }).join("");
+        document.querySelectorAll("#wb-alpha .wb-cell").forEach(function (el) {
+          el.addEventListener("click", function () {
+            if (el.classList.contains("off")) return;
+            filterLetter = el.getAttribute("data-l") || "";
+            renderAlpha();
+            renderList();
+          });
+        });
+      }
+
+      function renderList() {
+        var kw = keyword.trim().toLowerCase();
+        var list = current.words.filter(function (w) {
+          if (filterLetter && w.word.charAt(0).toUpperCase() !== filterLetter) return false;
+          if (!kw) return true;
+          return (
+            w.word.toLowerCase().indexOf(kw) >= 0 ||
+            String(w.meaning).toLowerCase().indexOf(kw) >= 0
+          );
+        });
+        document.getElementById("wb-count").textContent = "显示 " + list.length + " / " + current.words.length + " 词";
+        document.getElementById("wb-list").innerHTML = list.length
+          ? list
+              .map(function (w) {
+                return (
+                  '<div class="wb-row"><span class="wb-word">' + E(w.word) + "</span>" +
+                  '<span class="wb-phon">' + E(w.phonetic || "") + "</span>" +
+                  '<span class="wb-pos">' + E(w.pos || "") + "</span>" +
+                  '<span class="wb-mean">' + E(w.meaning) + "</span></div>"
+                );
+              })
+              .join("")
+          : '<p style="color:var(--ink-soft)">没有匹配的单词。</p>';
+      }
+
+      App.renderAuthUI();
+      App.api("/api/words-settings")
+        .then(function (s) { activeBook = s.activeBook || ""; })
+        .catch(function () {})
+        .then(function () {
+          return App.api("/api/wordbooks");
+        })
+        .then(function (data) {
+          books = data.books || [];
+          if (!books.length) {
+            document.getElementById("book-grid").innerHTML =
+              '<div class="empty"><div class="big">📚</div>还没有词书。</div>';
+            return;
+          }
+          renderBooks();
+          return App.api("/api/me")
+            .then(function (d) {
+              isAdmin = !!(d.user && d.user.role === "admin");
+            })
+            .catch(function () {});
+        })
+        .then(function () {
+          var btn = document.getElementById("set-active");
+          btn.addEventListener("click", function () {
+            if (!current) return;
+            App.api("/api/words-settings", {
+              method: "POST",
+              body: { activeBook: current.id },
+            })
+              .then(function () {
+                activeBook = current.id;
+                renderBooks();
+                btn.textContent = "✅ 已是每日推送词书";
+              })
+              .catch(function (err) {
+                alert("设置失败（需要管理员登录）：" + err.message);
+              });
+          });
+          document.getElementById("wb-search").addEventListener("input", function (e) {
+            keyword = e.target.value || "";
+            if (current) renderList();
+          });
+        })
+        .catch(function (err) {
+          document.getElementById("book-grid").innerHTML =
+            '<p style="color:#e0577f">加载失败：' + E(err.message) + "</p>";
+        });
+    })();
+  </script>
+  <script>
+    (function () {
+      var l = document.getElementById("loader");
+      function hideLoader() {
+        if (!l) return;
+        l.classList.add("hidden");
+        setTimeout(function () { l.style.display = "none"; }, 600);
+      }
+      window.addEventListener("load", function () {
+        setTimeout(hideLoader, 2600);
+      });
+      setTimeout(hideLoader, 5000);
+    })();
+  </script>
+</body>
+</html>

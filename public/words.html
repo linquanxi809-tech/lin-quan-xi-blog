@@ -50,6 +50,7 @@
         <a href="index.html">首页</a>
         <a href="about.html">关于</a>
         <a href="words.html" class="active">单词</a>
+        <a href="wordbook.html">词书</a>
         <span id="auth-area" class="auth-area"></span>
       </nav>
     </div>
@@ -61,6 +62,7 @@
     <p>一天 5 个词，首字母从 A 排到 Z，26 天走完一轮再循环。先看中文线索自己拼，再点卡片揭晓。</p>
     <div>
       <a class="btn btn-primary" href="#today">🔤 今日单词</a>
+      <a class="btn btn-ghost" href="wordbook.html">🗂️ 词书库</a>
       <a class="btn btn-ghost" href="#archive">📚 往期回顾</a>
     </div>
   </section>
@@ -113,6 +115,7 @@
       var E = App.escapeHtml;
       var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
       var all = [];
+      var bookNames = {};
 
       function pickDate() {
         var m = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search);
@@ -218,7 +221,8 @@
           ? "今日单词 · " + entry.date
           : "往期单词 · " + entry.date;
         chip.textContent =
-          "第 " + cycDay(entry) + " 天 · 字母 " + (entry.letter || "?");
+          "第 " + cycDay(entry) + " 天 · 字母 " + (entry.letter || "?") +
+          (entry.book && bookNames[entry.book] ? " · " + bookNames[entry.book] : "");
         list.innerHTML = (entry.words || [])
           .map(function (w, i) {
             return cardHtml(entry, w, i, !isToday);
@@ -268,7 +272,16 @@
       }
 
       App.renderAuthUI();
-      App.api("/api/words")
+      App.api("/api/wordbooks")
+        .then(function (d) {
+          (d.books || []).forEach(function (b) {
+            bookNames[b.id] = b.name;
+          });
+        })
+        .catch(function () {})
+        .then(function () {
+          return App.api("/api/words");
+        })
         .then(function (data) {
           all = data.entries || [];
           if (!all.length) {

@@ -40,6 +40,8 @@ const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : SEE
 const ARTICLES_DIR = path.join(DATA_DIR, "articles");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const WORDS_FILE = path.join(DATA_DIR, "words.json");
+const WORDBOOKS_DIR = path.join(DATA_DIR, "wordbooks");
+const WORDS_SETTINGS_FILE = path.join(DATA_DIR, "words-settings.json");
 
 const PORT = process.env.PORT || 3000;
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
@@ -616,6 +618,66 @@ async function syncAllArticlesToGitHub() {
   }
   console.log(`[github] 启动全量文章同步：磁盘 ${all.length} 篇，本次新推送 ${pushed} 篇`);
 }
+// ---------- 词书（分级 / 学科词库）----------
+// 每本词书一个 JSON 文件：<DATA_DIR>/wordbooks/<id>.json
+// 结构：{ id, name, level, desc, words: [ { word, phonetic?, pos, meaning } ] }
+function readWordBookFiles() {
+  try {
+    if (!fs.existsSync(WORDBOOKS_DIR)) return [];
+    return fs
+      .readdirSync(WORDBOOKS_DIR)
+      .filter((f) => f.endsWith(".json"))
+      .sort()
+      .map((f) => {
+        try {
+          const j = JSON.parse(fs.readFileSync(path.join(WORDBOOKS_DIR, f), "utf8"));
+          const words = Array.isArray(j.words) ? j.words : [];
+          return {
+            id: String(j.id || f.replace(/\.json$/, "")),
+            name: String(j.name || j.id || f.replace(/\.json$/, "")),
+            level: String(j.level || ""),
+            desc: String(j.desc || ""),
+            count: words.length,
+            words: words,
+          };
+        } catch (e) {
+          return null;
+        }
+      })
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+function listWordBooks() {
+  return readWordBookFiles().map((b) => ({
+    id: b.id,
+    name: b.name,
+    level: b.level,
+    desc: b.desc,
+    count: b.count,
+  }));
+}
+function getWordBook(id) {
+  return readWordBookFiles().find((b) => b.id === id) || null;
+}
+function readWordsSettings() {
+  try {
+    const j = JSON.parse(fs.readFileSync(WORDS_SETTINGS_FILE, "utf8"));
+    return { activeBook: String(j.activeBook || ""), updatedAt: j.updatedAt || null };
+  } catch (e) {
+    return { activeBook: "", updatedAt: null };
+  }
+}
+function writeWordsSettings(obj) {
+  const next = {
+    activeBook: String(obj.activeBook || ""),
+    updatedAt: new Date().toISOString(),
+  };
+  fs.writeFileSync(WORDS_SETTINGS_FILE, JSON.stringify(next, null, 2), "utf8");
+  return next;
+}
+
 // ---------- 每日单词 ----------
 // 存为 <DATA_DIR>/words.json，结构：{ entries: [ { date, letter, day, words: [...] } ] }
 function readWords() {
@@ -665,6 +727,27 @@ async function syncWordsToGitHub() {
       console.error("[github] 同步 words.json 失败: " + e.message);
       return;
     }
+  }
+}
+
+async function syncWordsSettingsToGitHub() {
+  if (!githubSyncEnabled()) return;
+  const repoPath = "data/words-settings.json";
+  try {
+    const content = Buffer.from(
+      JSON.stringify(readWordsSettings(), null, 2),
+      "utf8"
+    ).toString("base64");
+    const sha = await getGitHubFileSha(repoPath);
+    await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
+      message: "chore: sync words-settings.json",
+      content,
+      branch: GH_BRANCH,
+      ...(sha ? { sha } : {}),
+    });
+    console.log("[github] 已同步 words-settings.json 到仓库");
+  } catch (e) {
+    console.error("[github] 同步 words-settings.json 失败: " + e.message);
   }
 }
 
@@ -1121,6 +1204,7 @@ async function handleApi(req, res, url) {
         date,
         letter: String(body.letter || words[0].word.charAt(0).toUpperCase()).trim().charAt(0).toUpperCase(),
         day: Number(body.day) || null,
+        book: String(body.book || "").trim(),
         scene: String(body.scene || "").trim(),
         words,
         updatedAt: new Date().toISOString(),
@@ -1128,6 +1212,39 @@ async function handleApi(req, res, url) {
       upsertWordEntry(entry);
       syncWordsToGitHub();
       return sendJSON(res, 200, { ok: true, entry });
+    }
+    return sendJSON(res, 405, { error: "方法不被允许" });
+  }
+
+  // /api/wordbooks —— 词书库（公开只读）
+  if (seg[0] === "wordbooks") {
+    if (seg.length === 1 && req.method === "GET") {
+      return sendJSON(res, 200, { books: listWordBooks() });
+    }
+    const id = safeId(seg[1]);
+    if (seg.length === 2 && id && req.method === "GET") {
+      const book = getWordBook(id);
+      if (!book) return sendJSON(res, 404, { error: "词书不存在" });
+      return sendJSON(res, 200, { book: book });
+    }
+    return sendJSON(res, 405, { error: "方法不被允许" });
+  }
+
+  // /api/words-settings —— 当前推送所用的词书（读公开，写需管理员）
+  if (seg[0] === "words-settings") {
+    if (seg.length === 1 && req.method === "GET") {
+      return sendJSON(res, 200, readWordsSettings());
+    }
+    if (seg.length === 1 && req.method === "POST") {
+      const u = currentAdmin(req);
+      if (!u) return sendJSON(res, 401, { error: "需要管理员权限" });
+      const body = await readBody(req);
+      const id = String(body.activeBook || "").trim();
+      if (!id) return sendJSON(res, 400, { error: "缺少词书 id" });
+      if (!getWordBook(id)) return sendJSON(res, 404, { error: "词书不存在" });
+      const saved = writeWordsSettings({ activeBook: id });
+      syncWordsSettingsToGitHub();
+      return sendJSON(res, 200, { ok: true, ...saved });
     }
     return sendJSON(res, 405, { error: "方法不被允许" });
   }

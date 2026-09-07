@@ -1319,8 +1319,200 @@ input[name="avatar"].drag-over {
   flex-wrap: wrap;
 }
 
+/* ---------- 词书库（wordbook.html）---------- */
+.wb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.wb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wb-card:hover {
+  border-color: var(--amber);
+  box-shadow: var(--shadow-hover);
+}
+.wb-card.active {
+  border-color: var(--brick);
+}
+.wb-card-level {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  color: #8a5a26;
+  background: rgba(181, 121, 58, 0.18);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.wb-card-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.wb-card-desc {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.wb-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.wb-chip {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.wb-flag {
+  font-size: 0.75rem;
+  background: rgba(168, 67, 47, 0.14);
+  color: #8c3322;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.wb-today {
+  background: rgba(181, 121, 58, 0.12);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.wb-today-head {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.wb-today-words {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.wb-today-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 118px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.wb-today-item b {
+  font-size: 1rem;
+}
+.wb-today-item i {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--amber);
+}
+.wb-today-item span {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.wb-tools {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.wb-search {
+  flex: 1;
+  min-width: 180px;
+  padding: 9px 12px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.wb-count {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.wb-alpha {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.wb-cell {
+  min-width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+}
+.wb-cell.on {
+  background: var(--brick);
+  border-color: var(--brick);
+  color: #fff8ec;
+  font-weight: 700;
+}
+.wb-cell.off {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.wb-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 8px;
+}
+.wb-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 13px;
+}
+.wb-word {
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 92px;
+}
+.wb-phon {
+  font-size: 0.76rem;
+  color: var(--amber);
+}
+.wb-pos {
+  font-size: 0.72rem;
+  color: var(--teal);
+  min-width: 36px;
+}
+.wb-mean {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
 @media (max-width: 640px) {
   .word-cards {
+    grid-template-columns: 1fr;
+  }
+  .wb-grid,
+  .wb-list {
     grid-template-columns: 1fr;
   }
   .wa-cell {
