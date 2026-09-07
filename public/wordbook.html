@@ -194,13 +194,34 @@
           five
             .map(function (w) {
               return (
-                '<span class="wb-today-item"><b>' + E(w.word) + "</b>" +
+                '<span class="wb-today-item"><span class="wb-today-top"><b>' + E(w.word) + "</b>" +
+                App.speakBtn(w.word) + "</span>" +
                 '<i>' + E(w.phonetic || "") + "</i>" +
-                "<span>" + E(w.meaning) + "</span></span>"
+                "<span>" + E(w.meaning) + "</span>" +
+                metaHtml(w) +
+                "</span>"
               );
             })
             .join("") +
           "</div>";
+        App.bindSpeak(document.getElementById("wb-today"));
+      }
+
+      function metaHtml(w) {
+        var out = "";
+        if (w.synonyms && w.synonyms.length) {
+          out +=
+            '<span class="wmeta"><b>近义</b>' +
+            w.synonyms.map(function (s) { return '<span class="wtag">' + E(s) + "</span>"; }).join("") +
+            "</span>";
+        }
+        if (w.derivatives && w.derivatives.length) {
+          out +=
+            '<span class="wmeta"><b>派生</b>' +
+            w.derivatives.map(function (s) { return '<span class="wtag">' + E(s) + "</span>"; }).join("") +
+            "</span>";
+        }
+        return out;
       }
 
       function renderAlpha() {
@@ -239,14 +260,16 @@
           ? list
               .map(function (w) {
                 return (
-                  '<div class="wb-row"><span class="wb-word">' + E(w.word) + "</span>" +
+                  '<div class="wb-row"><span class="wb-word">' + E(w.word) +
+                  App.speakBtn(w.word) + "</span>" +
                   '<span class="wb-phon">' + E(w.phonetic || "") + "</span>" +
                   '<span class="wb-pos">' + E(w.pos || "") + "</span>" +
-                  '<span class="wb-mean">' + E(w.meaning) + "</span></div>"
+                  '<span class="wb-mean">' + E(w.meaning) + metaHtml(w) + "</span></div>"
                 );
               })
               .join("")
           : '<p style="color:var(--ink-soft)">没有匹配的单词。</p>';
+        App.bindSpeak(document.getElementById("wb-list"));
       }
 
       App.renderAuthUI();
