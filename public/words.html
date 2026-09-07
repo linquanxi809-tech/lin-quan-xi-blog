@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>每日单词 · 围坐篝火话天下</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <meta name="description" content="每天 5 个英语单词，按首字母从 A 走到 Z，26 天一轮。" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div id="loader" class="loader">
+    <svg class="pixel-scene" viewBox="0 0 120 130" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="78" cy="22" r="11" fill="#ffe082"/>
+      <rect x="20" y="18" width="2" height="2" fill="#ffffff" opacity="0.8"/>
+      <rect x="32" y="30" width="2" height="2" fill="#ffffff" opacity="0.6"/>
+      <rect x="72" y="14" width="2" height="2" fill="#ffffff" opacity="0.7"/>
+      <rect x="8" y="104" width="104" height="10" fill="#2a1d18"/>
+      <polygon points="34,64 60,42 86,64" fill="#5d4037"/>
+      <rect x="38" y="64" width="44" height="40" fill="#6d4c41"/>
+      <rect x="56" y="82" width="12" height="22" fill="#3e2723"/>
+      <rect x="64" y="92" width="2" height="3" fill="#ffca28"/>
+      <rect class="window-glow" x="44" y="74" width="10" height="10" fill="#ffd54f"/>
+      <rect x="44" y="74" width="10" height="10" fill="none" stroke="#3e2723" stroke-width="1"/>
+      <rect x="51" y="98" width="20" height="4" fill="#5d4037"/>
+      <rect x="54" y="95" width="14" height="3" fill="#4e342e"/>
+      <g class="fire">
+        <rect x="56" y="88" width="12" height="12" fill="#d84315"/>
+        <rect x="58" y="82" width="8" height="10" fill="#ff6d00"/>
+        <rect x="60" y="75" width="4" height="9" fill="#ff8f00"/>
+      </g>
+      <g class="fire-inner">
+        <rect x="59" y="84" width="6" height="10" fill="#ffca28"/>
+        <rect x="60" y="78" width="4" height="8" fill="#fff176"/>
+        <rect x="61" y="72" width="2" height="6" fill="#fffde7"/>
+      </g>
+      <circle class="spark" cx="62" cy="76" r="1.6" fill="#ffab40"/>
+      <circle class="spark s2" cx="57" cy="78" r="1.3" fill="#ffca28"/>
+      <circle class="spark s3" cx="66" cy="76" r="1.4" fill="#ff7043"/>
+    </svg>
+    <p class="loader-text">休憩者的小屋 · 加载中</p>
+    <div class="loader-bar"><span></span></div>
+  </div>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="dot"></span><span class="brand-text">勇者聚集人数 · <span class="online-num">0</span>人</span></a>
+      <nav class="nav-links">
+        <a class="nav-btn" href="publish.html">✍️ 发布</a>
+        <a href="index.html">首页</a>
+        <a href="about.html">关于</a>
+        <a href="words.html" class="active">单词</a>
+        <span id="auth-area" class="auth-area"></span>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero wrap">
+    <span class="badge">📖 每天 5 个 · 从 A 走到 Z</span>
+    <h1>每日<span class="hl">单词</span></h1>
+    <p>一天 5 个词，首字母从 A 排到 Z，26 天走完一轮再循环。先看中文线索自己拼，再点卡片揭晓。</p>
+    <div>
+      <a class="btn btn-primary" href="#today">🔤 今日单词</a>
+      <a class="btn btn-ghost" href="#archive">📚 往期回顾</a>
+    </div>
+  </section>
+
+  <section class="section wrap" id="today">
+    <div class="section-head reveal">
+      <h2><span class="emoji">🔤</span> <span id="today-title">今日单词</span></h2>
+      <span class="word-progress-chip" id="today-chip"></span>
+    </div>
+
+    <div class="word-alpha" id="alpha-bar" aria-label="A 到 Z 进度"></div>
+
+    <div class="word-toolbar">
+      <button class="btn btn-sm" type="button" id="btn-reveal-all">👀 全部揭晓</button>
+      <button class="btn btn-sm" type="button" id="btn-hide-all">🙈 全部盖住</button>
+      <span class="word-hint">点卡片也可单独揭晓</span>
+    </div>
+
+    <div class="word-cards" id="word-list">
+      <p style="color:var(--ink-soft)">正在加载单词…</p>
+    </div>
+
+    <div class="word-scene" id="word-scene" hidden></div>
+  </section>
+
+  <section class="section wrap" id="archive">
+    <div class="section-head reveal">
+      <h2><span class="emoji">📚</span> 往期回顾</h2>
+    </div>
+    <div class="word-archive" id="word-archive">
+      <p style="color:var(--ink-soft)">正在加载…</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="social">
+        <a href="https://home.gamer.com.tw/profile/index.php?owner=YangXi2025" title="我的巴哈姆特主页" aria-label="我的巴哈姆特主页">
+          <img class="bahamut-icon" src="assets/images/bahamut-icon.png" alt="巴哈姆特" />
+        </a>
+      </div>
+      <p>© <span id="year">2026</span> 林泉汐 · 用 ❤️ 和 Node.js 搭建</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      var E = App.escapeHtml;
+      var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+      var all = [];
+
+      function pickDate() {
+        var m = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search);
+        return m ? m[1] : "";
+      }
+      function todayStr() {
+        var d = new Date();
+        return (
+          d.getFullYear() +
+          "-" +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(d.getDate()).padStart(2, "0")
+        );
+      }
+      function cycDay(entry) {
+        if (entry.day) return entry.day;
+        var base = new Date("2026-09-07T00:00:00");
+        var cur = new Date(entry.date + "T00:00:00");
+        return Math.floor((cur - base) / 86400000) + 1;
+      }
+
+      function renderAlpha(current) {
+        var done = {};
+        all.forEach(function (e) {
+          if (e.letter) done[String(e.letter).toUpperCase()] = e.date;
+        });
+        var html = LETTERS.map(function (L) {
+          var cls = "wa-cell";
+          if (done[L]) cls += " done";
+          if (current && L === String(current).toUpperCase()) cls += " current";
+          return (
+            '<span class="' +
+            cls +
+            '" title="' +
+            L +
+            (done[L] ? "（" + done[L] + "）" : "（还没到）") +
+            '">' +
+            L +
+            "</span>"
+          );
+        }).join("");
+        document.getElementById("alpha-bar").innerHTML = html;
+      }
+
+      function cardHtml(entry, w, i, revealed) {
+        return (
+          '<article class="wcard' +
+          (revealed ? " open" : "") +
+          '" data-i="' +
+          i +
+          '">' +
+          '<div class="wcard-top"><span class="wnum">' +
+          String(i + 1).padStart(2, "0") +
+          '</span><span class="wpos">' +
+          E(w.pos) +
+          "</span></div>" +
+          '<div class="wmask"><span class="wmask-word">' +
+          E(w.word) +
+          "</span></div>" +
+          '<p class="wclue">线索：' +
+          E(w.clue || w.meaning) +
+          "</p>" +
+          '<div class="wdetail">' +
+          '<div class="wrow"><span class="wphonetic">' +
+          E(w.phonetic) +
+          '</span><span class="wmeaning">' +
+          E(w.meaning) +
+          "</span></div>" +
+          '<p class="wex">' +
+          E(w.example) +
+          "</p>" +
+          '<p class="wex-cn">' +
+          E(w.exampleCn) +
+          "</p>" +
+          '<p class="wtip">' +
+          E(w.tip) +
+          "</p>" +
+          "</div>" +
+          '<button class="wbtn" type="button">' +
+          (revealed ? "盖住" : "揭晓") +
+          "</button>" +
+          "</article>"
+        );
+      }
+
+      function bindCards(root) {
+        root.querySelectorAll(".wcard").forEach(function (card) {
+          var btn = card.querySelector(".wbtn");
+          if (!btn) return;
+          btn.addEventListener("click", function () {
+            var open = card.classList.toggle("open");
+            btn.textContent = open ? "盖住" : "揭晓";
+          });
+        });
+      }
+
+      function renderDay(entry, isToday) {
+        var list = document.getElementById("word-list");
+        var title = document.getElementById("today-title");
+        var chip = document.getElementById("today-chip");
+        title.textContent = isToday
+          ? "今日单词 · " + entry.date
+          : "往期单词 · " + entry.date;
+        chip.textContent =
+          "第 " + cycDay(entry) + " 天 · 字母 " + (entry.letter || "?");
+        list.innerHTML = (entry.words || [])
+          .map(function (w, i) {
+            return cardHtml(entry, w, i, !isToday);
+          })
+          .join("");
+        bindCards(list);
+        var scene = document.getElementById("word-scene");
+        if (entry.scene) {
+          scene.hidden = false;
+          scene.innerHTML =
+            "<strong>一句话串联</strong><p>" + E(entry.scene) + "</p>";
+        } else {
+          scene.hidden = true;
+        }
+        renderAlpha(entry.letter);
+      }
+
+      function renderArchive(activeDate) {
+        var box = document.getElementById("word-archive");
+        if (!all.length) {
+          box.innerHTML = '<p style="color:var(--ink-soft)">还没有往期记录。</p>';
+          return;
+        }
+        box.innerHTML = all
+          .map(function (e) {
+            var chips = (e.words || [])
+              .map(function (w) {
+                return '<span class="wchip">' + E(w.word) + "</span>";
+              })
+              .join("");
+            return (
+              '<a class="warch' +
+              (e.date === activeDate ? " active" : "") +
+              '" href="words.html?date=' +
+              encodeURIComponent(e.date) +
+              '">' +
+              '<span class="warch-date">' +
+              E(e.date) +
+              '</span><span class="warch-letter">' +
+              E(e.letter || "?") +
+              '</span><span class="warch-words">' +
+              chips +
+              "</span></a>"
+            );
+          })
+          .join("");
+      }
+
+      App.renderAuthUI();
+      App.api("/api/words")
+        .then(function (data) {
+          all = data.entries || [];
+          if (!all.length) {
+            document.getElementById("word-list").innerHTML =
+              '<div class="empty"><div class="big">🔤</div>还没有单词，明天早上 8 点开始更新。</div>';
+            document.getElementById("word-archive").innerHTML = "";
+            renderAlpha("");
+            return;
+          }
+          var want = pickDate();
+          var entry = (want && all.filter(function (e) { return e.date === want; })[0]) || all[0];
+          renderDay(entry, !want || entry.date === all[0].date);
+          renderArchive(entry.date);
+          document.getElementById("btn-reveal-all").onclick = function () {
+            document.querySelectorAll("#word-list .wcard").forEach(function (c) {
+              c.classList.add("open");
+              var b = c.querySelector(".wbtn");
+              if (b) b.textContent = "盖住";
+            });
+          };
+          document.getElementById("btn-hide-all").onclick = function () {
+            document.querySelectorAll("#word-list .wcard").forEach(function (c) {
+              c.classList.remove("open");
+              var b = c.querySelector(".wbtn");
+              if (b) b.textContent = "揭晓";
+            });
+          };
+        })
+        .catch(function (err) {
+          document.getElementById("word-list").innerHTML =
+            '<p style="color:#e0577f">加载失败：' + E(err.message) + "</p>";
+        });
+    })();
+  </script>
+  <script>
+    (function () {
+      var l = document.getElementById("loader");
+      function hideLoader() {
+        if (!l) return;
+        l.classList.add("hidden");
+        setTimeout(function () { l.style.display = "none"; }, 600);
+      }
+      window.addEventListener("load", function () {
+        setTimeout(hideLoader, 2600);
+      });
+      setTimeout(hideLoader, 5000);
+    })();
+  </script>
+</body>
+</html>

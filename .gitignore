@@ -3,3 +3,7 @@ node_modules/
 *.log
 .DS_Store
 npm-debug.log*
+
+# 本地同步脚本（内含 GitHub Token，切勿提交）
+push_server.py
+push_words.py

@@ -39,6 +39,7 @@ const SEED_DIR = path.join(ROOT, "data");
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : SEED_DIR;
 const ARTICLES_DIR = path.join(DATA_DIR, "articles");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
+const WORDS_FILE = path.join(DATA_DIR, "words.json");
 
 const PORT = process.env.PORT || 3000;
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7; // 7 天
@@ -615,6 +616,58 @@ async function syncAllArticlesToGitHub() {
   }
   console.log(`[github] 启动全量文章同步：磁盘 ${all.length} 篇，本次新推送 ${pushed} 篇`);
 }
+// ---------- 每日单词 ----------
+// 存为 <DATA_DIR>/words.json，结构：{ entries: [ { date, letter, day, words: [...] } ] }
+function readWords() {
+  try {
+    const json = JSON.parse(fs.readFileSync(WORDS_FILE, "utf8"));
+    const list = Array.isArray(json) ? json : json && Array.isArray(json.entries) ? json.entries : [];
+    return list
+      .filter((e) => e && typeof e.date === "string")
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  } catch (e) {
+    return [];
+  }
+}
+function writeWords(entries) {
+  const sorted = [...entries].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  fs.writeFileSync(WORDS_FILE, JSON.stringify({ entries: sorted }, null, 2), "utf8");
+  return sorted;
+}
+function upsertWordEntry(entry) {
+  const rest = readWords().filter((e) => e.date !== entry.date);
+  rest.push(entry);
+  return writeWords(rest);
+}
+async function syncWordsToGitHub() {
+  if (!githubSyncEnabled()) return;
+  const repoPath = "data/words.json";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const content = Buffer.from(
+      JSON.stringify({ entries: readWords() }, null, 2),
+      "utf8"
+    ).toString("base64");
+    try {
+      const sha = await getGitHubFileSha(repoPath);
+      await ghApiRequest("PUT", `/repos/${GH_REPO}/contents/${repoPath}`, {
+        message: "chore: sync words.json",
+        content,
+        branch: GH_BRANCH,
+        ...(sha ? { sha } : {}),
+      });
+      console.log("[github] 已同步 words.json 到仓库");
+      return;
+    } catch (e) {
+      if (String(e.message).includes("does not match") && attempt < 2) {
+        console.warn("[github] words.json sha 冲突，重试 (" + (attempt + 1) + ")");
+        continue;
+      }
+      console.error("[github] 同步 words.json 失败: " + e.message);
+      return;
+    }
+  }
+}
+
 async function syncUsersToGitHub() {
   if (!githubSyncEnabled()) return;
   const repoPath = "data/users.json";
@@ -1025,6 +1078,56 @@ async function handleApi(req, res, url) {
       saveArticle(updated);
       syncArticleToGitHub(updated);
       return sendJSON(res, 200, { ok: true, id });
+    }
+    return sendJSON(res, 405, { error: "方法不被允许" });
+  }
+
+  // /api/words —— 每日单词（读公开，写需管理员）
+  if (seg[0] === "words") {
+    if (seg.length === 1 && req.method === "GET") {
+      const all = readWords();
+      const date = url.searchParams.get("date");
+      if (date) {
+        const one = all.find((e) => e.date === date);
+        if (!one) return sendJSON(res, 404, { error: "这天还没有单词" });
+        return sendJSON(res, 200, { entry: one });
+      }
+      const limit = parseInt(url.searchParams.get("limit") || "", 10);
+      const list = Number.isFinite(limit) && limit > 0 ? all.slice(0, limit) : all;
+      return sendJSON(res, 200, { entries: list, total: all.length });
+    }
+    if (seg.length === 1 && req.method === "POST") {
+      const u = currentAdmin(req);
+      if (!u) return sendJSON(res, 401, { error: "需要管理员权限" });
+      const body = await readBody(req);
+      const date = String(body.date || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
+        return sendJSON(res, 400, { error: "日期格式应为 YYYY-MM-DD" });
+      const raw = Array.isArray(body.words) ? body.words : [];
+      const words = raw
+        .map((w) => ({
+          word: String((w && w.word) || "").trim(),
+          phonetic: String((w && w.phonetic) || "").trim(),
+          pos: String((w && w.pos) || "").trim(),
+          meaning: String((w && w.meaning) || "").trim(),
+          example: String((w && w.example) || "").trim(),
+          exampleCn: String((w && w.exampleCn) || "").trim(),
+          tip: String((w && w.tip) || "").trim(),
+          clue: String((w && w.clue) || "").trim(),
+        }))
+        .filter((w) => w.word);
+      if (!words.length) return sendJSON(res, 400, { error: "至少要有一个单词" });
+      const entry = {
+        date,
+        letter: String(body.letter || words[0].word.charAt(0).toUpperCase()).trim().charAt(0).toUpperCase(),
+        day: Number(body.day) || null,
+        scene: String(body.scene || "").trim(),
+        words,
+        updatedAt: new Date().toISOString(),
+      };
+      upsertWordEntry(entry);
+      syncWordsToGitHub();
+      return sendJSON(res, 200, { ok: true, entry });
     }
     return sendJSON(res, 405, { error: "方法不被允许" });
   }

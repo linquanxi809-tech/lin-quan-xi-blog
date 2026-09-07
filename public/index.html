@@ -58,6 +58,7 @@
         <a class="nav-btn" href="publish.html">✍️ 发布</a>
         <a href="index.html" class="active">首页</a>
         <a href="about.html">关于</a>
+        <a href="words.html">单词</a>
         <span id="auth-area" class="auth-area"></span>
       </nav>
     </div>
@@ -70,6 +71,16 @@
     <div>
       <a class="btn btn-primary" href="index.html#articles">📚 读读文章</a>
       <a class="btn btn-ghost" href="about.html">👀 了解我</a>
+    </div>
+  </section>
+
+  <section class="section wrap" id="words-today">
+    <div class="section-head reveal">
+      <h2><span class="emoji">🔤</span> 今日单词</h2>
+      <a class="word-more" href="words.html">去背单词 →</a>
+    </div>
+    <div class="word-strip" id="word-strip">
+      <p style="color:var(--ink-soft)">正在加载今日单词…</p>
     </div>
   </section>
 
@@ -95,6 +106,35 @@
 
   <script src="assets/js/main.js"></script>
   <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      App.api("/api/words?limit=1")
+        .then(function (data) {
+          var box = document.getElementById("word-strip");
+          var entry = (data.entries || [])[0];
+          if (!entry) {
+            box.innerHTML = '<p style="color:var(--ink-soft)">单词还在路上，明天早上 8 点见。</p>';
+            return;
+          }
+          var chips = (entry.words || [])
+            .map(function (w) {
+              return '<span class="wchip">' + App.escapeHtml(w.word) + "</span>";
+            })
+            .join("");
+          box.innerHTML =
+            '<a class="wstrip" href="words.html">' +
+            '<span class="wstrip-letter">' + App.escapeHtml(entry.letter || "?") + "</span>" +
+            '<span class="wstrip-main">' +
+            '<span class="wstrip-date">' + App.escapeHtml(entry.date) + " · 今日 5 词</span>" +
+            '<span class="wstrip-words">' + chips + "</span>" +
+            "</span></a>";
+        })
+        .catch(function () {
+          document.getElementById("word-strip").innerHTML =
+            '<p style="color:var(--ink-soft)">单词加载失败，去「单词」页看看。</p>';
+        });
+    })();
+  </script>
   <script>
     (function () {
       App.renderAuthUI();

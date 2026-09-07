@@ -1,0 +1,63 @@
+{
+  "entries": [
+    {
+      "date": "2026-09-07",
+      "letter": "A",
+      "day": 1,
+      "scene": "面对 abundant 的资料，我每天 absorb 一点、accumulate 下来，从不 abandon，终于写出了 accurate 的报告。",
+      "words": [
+        {
+          "word": "abandon",
+          "phonetic": "/əˈbændən/",
+          "pos": "v.",
+          "meaning": "放弃，中止；抛弃，遗弃",
+          "example": "They had to abandon the plan due to lack of funding.",
+          "exampleCn": "因资金不足，他们不得不放弃这个计划。",
+          "tip": "a-（去）+ bandon（管辖权）→ 交出管辖权、不再管 → 放弃。搭配：abandon oneself to 沉溺于",
+          "clue": "因资金不足而「中途叫停、不再继续」某个计划（a 开头，7 个字母）"
+        },
+        {
+          "word": "absorb",
+          "phonetic": "/əbˈsɔːrb/",
+          "pos": "v.",
+          "meaning": "吸收（液体、热量、信息）；使全神贯注",
+          "example": "It takes time to absorb so much new information.",
+          "exampleCn": "消化这么多新信息需要时间。",
+          "tip": "ab-（离开）+ sorb（吸吮）→ 吸走。派生：absorbed adj. 专注的（be absorbed in）；absorption n.",
+          "clue": "海绵「吸走」水分，或「消化理解」大量新信息（a 开头，6 个字母）"
+        },
+        {
+          "word": "abundant",
+          "phonetic": "/əˈbʌndənt/",
+          "pos": "adj.",
+          "meaning": "大量的，丰富的，充裕的",
+          "example": "The region is abundant in natural resources.",
+          "exampleCn": "该地区自然资源丰富。",
+          "tip": "ab- + und（波浪，如 undulate 波动）→ 像波浪一样涌出来 → 丰沛。搭配：be abundant in 富于…",
+          "clue": "形容资源、物产「多到涌出来」，常搭配 in（a 开头，8 个字母）"
+        },
+        {
+          "word": "accumulate",
+          "phonetic": "/əˈkjuːmjəleɪt/",
+          "pos": "v.",
+          "meaning": "积累，积聚；（数量）逐渐增加",
+          "example": "She has accumulated ten years of teaching experience.",
+          "exampleCn": "她积累了十年的教学经验。",
+          "tip": "ac-（朝向）+ cumul（堆积，如 cumulus 积云）→ 越堆越高。派生：accumulation n.",
+          "clue": "经验、财富「一天天堆起来」，词根 cumul = 堆积（a 开头，10 个字母）"
+        },
+        {
+          "word": "accurate",
+          "phonetic": "/ˈækjərət/",
+          "pos": "adj.",
+          "meaning": "准确的，精确的；无误的",
+          "example": "We need accurate data before making a decision.",
+          "exampleCn": "做决定前我们需要准确的数据。",
+          "tip": "ac-（加强）+ cura（关心、照料，如 cure 治愈）→ 用心照料细节 → 精确。反义：inaccurate",
+          "clue": "形容数据、计时「分毫不差」，反义加前缀 in-（a 开头，8 个字母）"
+        }
+      ],
+      "updatedAt": "2026-09-07T10:00:00.000Z"
+    }
+  ]
+}
