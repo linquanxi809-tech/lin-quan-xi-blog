@@ -5,87 +5,50 @@
       "letter": "A",
       "day": 1,
       "book": "cet4",
-      "scene": "面对 abundant 的资料，我每天 absorb 一点、accumulate 下来，从不 abandon，终于写出了 accurate 的报告。",
+      "scene": "为了写论文，他先定下 absolute（绝对的）框架，再啃大量 academic（学术的）文献，确保数据 accurate（准确）；靠半年时间 acquire（习得）研究方法，证据终于 adequate（足够）支撑结论。",
       "words": [
         {
-          "word": "abandon",
-          "phonetic": "/əˈbændən/",
-          "pos": "v.",
-          "meaning": "放弃，中止；抛弃，遗弃",
-          "example": "They had to abandon the plan due to lack of funding.",
-          "exampleCn": "因资金不足，他们不得不放弃这个计划。",
-          "tip": "a-（去）+ bandon（管辖权）→ 交出管辖权、不再管 → 放弃。搭配：abandon oneself to 沉溺于",
-          "clue": "因资金不足而「中途叫停、不再继续」某个计划（a 开头，7 个字母）",
-          "synonyms": [
-            "give up",
-            "desert"
-          ],
-          "derivatives": [
-            "abandonment"
-          ]
-        },
-        {
-          "word": "absorb",
-          "phonetic": "/əbˈsɔːrb/",
-          "pos": "v.",
-          "meaning": "吸收（液体、热量、信息）；使全神贯注",
-          "example": "It takes time to absorb so much new information.",
-          "exampleCn": "消化这么多新信息需要时间。",
-          "tip": "ab-（离开）+ sorb（吸吮）→ 吸走。派生：absorbed adj. 专注的（be absorbed in）；absorption n.",
-          "clue": "海绵「吸走」水分，或「消化理解」大量新信息（a 开头，6 个字母）",
-          "synonyms": [
-            "soak up",
-            "take in"
-          ],
-          "derivatives": [
-            "absorbed",
-            "absorption"
-          ]
-        },
-        {
-          "word": "abundant",
-          "phonetic": "/əˈbʌndənt/",
+          "word": "absolute",
+          "phonetic": "/ˈæbsəluːt/",
           "pos": "adj.",
-          "meaning": "大量的，丰富的，充裕的",
-          "example": "The region is abundant in natural resources.",
-          "exampleCn": "该地区自然资源丰富。",
-          "tip": "ab- + und（波浪，如 undulate 波动）→ 像波浪一样涌出来 → 丰沛。搭配：be abundant in 富于…",
-          "clue": "形容资源、物产「多到涌出来」，常搭配 in（a 开头，8 个字母）",
+          "meaning": "绝对的；完全的",
+          "example": "There is no absolute truth in this field.",
+          "exampleCn": "这个领域没有绝对的真理。",
+          "tip": "ab-（离开）+ solute（松开，如 solve 解决）→ 不受约束、脱离相对 → 绝对的。派生 absolutely（adv. 绝对地）",
+          "clue": "形容「毫无例外、完全成立」的标准或真理（a 开头，8 个字母）",
           "synonyms": [
-            "plentiful",
-            "ample"
+            "complete",
+            "utter"
           ],
           "derivatives": [
-            "abundance"
+            "absolutely"
           ]
         },
         {
-          "word": "accumulate",
-          "phonetic": "/əˈkjuːmjəleɪt/",
-          "pos": "v.",
-          "meaning": "积累，积聚；（数量）逐渐增加",
-          "example": "She has accumulated ten years of teaching experience.",
-          "exampleCn": "她积累了十年的教学经验。",
-          "tip": "ac-（朝向）+ cumul（堆积，如 cumulus 积云）→ 越堆越高。派生：accumulation n.",
-          "clue": "经验、财富「一天天堆起来」，词根 cumul = 堆积（a 开头，10 个字母）",
+          "word": "academic",
+          "phonetic": "/ˌækəˈdemɪk/",
+          "pos": "adj.",
+          "meaning": "学术的",
+          "example": "She published an academic paper last month.",
+          "exampleCn": "她上个月发表了一篇学术论文。",
+          "tip": "源自 academy（学院、学会）→ 学术的。派生 academy（学院）、academician（院士 / 学会会员）",
+          "clue": "形容论文、研究、氛围「与学校 / 学问相关」（a 开头，9 个字母）",
           "synonyms": [
-            "amass",
-            "collect",
-            "pile up"
+            "scholarly"
           ],
           "derivatives": [
-            "accumulation",
-            "accumulative"
+            "academy",
+            "academician"
           ]
         },
         {
           "word": "accurate",
           "phonetic": "/ˈækjərət/",
           "pos": "adj.",
-          "meaning": "准确的，精确的；无误的",
+          "meaning": "准确的，精确的",
           "example": "We need accurate data before making a decision.",
           "exampleCn": "做决定前我们需要准确的数据。",
-          "tip": "ac-（加强）+ cura（关心、照料，如 cure 治愈）→ 用心照料细节 → 精确。反义：inaccurate",
+          "tip": "ac-（加强）+ cura（关心、照料，如 cure 治愈）→ 用心照料细节 → 精确。反义 inaccurate",
           "clue": "形容数据、计时「分毫不差」，反义加前缀 in-（a 开头，8 个字母）",
           "synonyms": [
             "exact",
@@ -95,9 +58,42 @@
             "accuracy",
             "accurately"
           ]
+        },
+        {
+          "word": "acquire",
+          "phonetic": "/əˈkwaɪə(r)/",
+          "pos": "v.",
+          "meaning": "获得；习得",
+          "example": "Children acquire language skills naturally.",
+          "exampleCn": "儿童自然地习得语言技能。",
+          "tip": "ac-（朝向）+ quire（寻求、获得，如 require 要求）→ 去取得 → 获得、习得。派生 acquisition（获得物 / 收购）",
+          "clue": "指「通过努力得到 / 学会」知识、技能或公司（a 开头，7 个字母）",
+          "synonyms": [
+            "obtain",
+            "gain"
+          ],
+          "derivatives": [
+            "acquisition"
+          ]
+        },
+        {
+          "word": "adequate",
+          "phonetic": "/ˈædɪkwət/",
+          "pos": "adj.",
+          "meaning": "足够的；胜任的",
+          "example": "The supply is adequate to meet the demand.",
+          "exampleCn": "供应足以满足需求。",
+          "tip": "ad-（朝向）+ equ（相等，如 equal）+ -ate → 达到相等、够得上 → 足够的。派生 adequately（足够地）",
+          "clue": "形容数量、能力「刚好够用、能胜任」（a 开头，8 个字母）",
+          "synonyms": [
+            "sufficient"
+          ],
+          "derivatives": [
+            "adequately"
+          ]
         }
       ],
-      "updatedAt": "2026-09-07T10:00:00.000Z"
+      "updatedAt": "2026-09-07T12:27:19.000Z"
     }
   ]
 }
