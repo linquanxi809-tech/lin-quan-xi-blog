@@ -1,6 +1,32 @@
 {
   "entries": [
     {
+      "date": "2026-09-08",
+      "letter": "B",
+      "day": 2,
+      "book": "cet4",
+      "scene": "月底翻着手机账单发现又超支了，只好坐下来重新做一份预算，把下个月每一笔开销都安排得明明白白、量入为出。",
+      "words": [
+        {
+          "word": "budget",
+          "phonetic": "/ˈbʌdʒɪt/",
+          "pos": "n./v.",
+          "meaning": "① n. 预算（一定时期内的收支计划）② v. 编制预算；精打细算，量入为出",
+          "example": "We have to budget carefully for the trip, or we will run out of money halfway.",
+          "exampleCn": "我们得为这趟旅行仔细做预算，不然半路就会把钱花光。",
+          "tip": "① 词源联想：源自古法语 bougette（小皮包），商人出门把钱装进小皮包，包里有多少钱就决定能花多少 → 预算。② 常见搭配：on a tight budget（预算紧张）/ within budget（在预算内）/ over budget（超支）/ budget for sth（为某事编预算）。",
+          "clue": "每月工资还没发，就先规划好各项开销的那份“钱袋子计划”（b 开头，6 个字母）",
+          "synonyms": [
+            "allowance"
+          ],
+          "derivatives": [
+            "budgetary"
+          ]
+        }
+      ],
+      "updatedAt": "2026-09-08T03:19:10.000Z"
+    },
+    {
       "date": "2026-09-07",
       "letter": "A",
       "day": 1,
