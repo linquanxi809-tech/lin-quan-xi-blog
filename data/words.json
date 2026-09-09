@@ -1,6 +1,100 @@
 {
   "entries": [
     {
+      "date": "2026-09-09",
+      "letter": "C",
+      "day": 3,
+      "book": "cet4",
+      "scene": "工厂已满负荷（capacity）运转，考虑到眼下这种情况（circumstance），那则广告（commercial）必须如期上线；虽然加班没人补偿（compensate）他，他依然是团队里最能胜任（competent）的那个人。",
+      "words": [
+        {
+          "word": "capacity",
+          "phonetic": "/kəˈpæsəti/",
+          "pos": "n.",
+          "meaning": "容量；能力",
+          "example": "The factory is running at full capacity to fill the holiday orders.",
+          "exampleCn": "为了交付节日订单，这家工厂正在满负荷运转。",
+          "tip": "词根 cap-（拿、抓，如 capture）+ -acity（名词后缀）→ 能“容纳/抓住”的量 → 容量。常见搭配：the capacity to do sth（做某事的能力）、at full capacity（满负荷）。",
+          "clue": "指一个容器能装多少，也指人的能力（c 开头，8 个字母）",
+          "synonyms": [
+            "ability",
+            "volume"
+          ],
+          "derivatives": [
+            "capable"
+          ]
+        },
+        {
+          "word": "circumstance",
+          "phonetic": "/ˈsɜːkəmstəns/",
+          "pos": "n.",
+          "meaning": "情况；环境",
+          "example": "Under no circumstances should you share your password with anyone.",
+          "exampleCn": "在任何情况下你都不应该把密码告诉任何人。",
+          "tip": "circum-（绕圈、周围，同 circle）+ stance（站立）→ 围站在你身边的一切 → 周遭情形。常见搭配：under the circumstances（既然如此）、under no circumstances（绝不，置于句首要倒装）。",
+          "clue": "常出现在 under no ~ 中表示“绝不”，指周遭的情形（c 开头，12 个字母）",
+          "synonyms": [
+            "situation",
+            "condition"
+          ],
+          "derivatives": [
+            "circumstantial"
+          ]
+        },
+        {
+          "word": "commercial",
+          "phonetic": "/kəˈmɜːʃl/",
+          "pos": "adj./n.",
+          "meaning": "商业的；广告",
+          "example": "The film was a big commercial success, even though critics disliked it.",
+          "exampleCn": "尽管影评人不喜欢，这部电影在商业上却大获成功。",
+          "tip": "commerce（商业）+ -ial（形容词后缀）→ 商业的；转作名词时指电视、电台里插播的“广告”。常见搭配：commercial value（商业价值）、a commercial break（广告时段）。",
+          "clue": "形容词意为“商业的”，作名词时指电视里插播的广告（c 开头，10 个字母）",
+          "synonyms": [
+            "business"
+          ],
+          "derivatives": [
+            "commerce",
+            "commercialize"
+          ]
+        },
+        {
+          "word": "compensate",
+          "phonetic": "/ˈkɒmpenseɪt/",
+          "pos": "v.",
+          "meaning": "补偿",
+          "example": "The company compensated him for the extra hours he worked last month.",
+          "exampleCn": "公司对他上个月加班的时间给予了补偿。",
+          "tip": "com-（完全）+ pens（称量、支付，同 expensive、pension）+ -ate → 用钱把差额“称平” → 补偿。常见搭配：compensate sb for sth（因某事赔偿某人）、compensate for（弥补）。",
+          "clue": "因你加班或受了损失而付钱给你、予以弥补（c 开头，10 个字母）",
+          "synonyms": [
+            "make up for"
+          ],
+          "derivatives": [
+            "compensation"
+          ]
+        },
+        {
+          "word": "competent",
+          "phonetic": "/ˈkɒmpɪtənt/",
+          "pos": "adj.",
+          "meaning": "能胜任的",
+          "example": "She is a highly competent manager who never misses a deadline.",
+          "exampleCn": "她是一位非常称职的经理，从不错过任何截止日期。",
+          "tip": "来自 compete（竞争）+ -ent（形容词后缀）→ 有竞争力的 → 能胜任的。常见搭配：competent in/at sth（在某方面胜任）、perfectly competent（完全称职）。",
+          "clue": "形容员工能力强、足以胜任某项工作（c 开头，9 个字母）",
+          "synonyms": [
+            "capable"
+          ],
+          "derivatives": [
+            "competence",
+            "competency"
+          ]
+        }
+      ],
+      "updatedAt": "2026-09-09T10:52:07+08:00"
+    },
+    {
       "date": "2026-09-08",
       "letter": "B",
       "day": 2,
