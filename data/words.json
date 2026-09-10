@@ -1,6 +1,85 @@
 {
   "entries": [
     {
+      "date": "2026-09-10",
+      "letter": "D",
+      "day": 4,
+      "book": "cet4",
+      "scene": "季度复盘会上，图表显示利润正在 decline，产品经理当场 demonstrate 了新版本，提醒大家 distinguish 真需求与伪需求，才能在细分赛道 dominate。",
+      "words": [
+        {
+          "word": "decline",
+          "phonetic": "/dɪˈklaɪn/",
+          "pos": "v./n.",
+          "meaning": "下降；婉拒",
+          "example": "The company's profits declined by 15% last year, so it declined the sponsor's offer.",
+          "exampleCn": "公司利润去年下降了 15%，因此婉拒了赞助方的提议。",
+          "tip": "词根 clin = 倾斜（同根 incline 倾向），de- 向下 → 向下倾斜即「下降」；态度往下压引申为「婉拒」。搭配：a sharp decline；decline an invitation。",
+          "clue": "礼貌地拒绝邀请，也可指数据往下掉（d 开头，7 个字母）",
+          "synonyms": [
+            "decrease",
+            "refuse"
+          ],
+          "derivatives": [
+            "declining"
+          ]
+        },
+        {
+          "word": "demonstrate",
+          "phonetic": "/ˈdemənstreɪt/",
+          "pos": "v.",
+          "meaning": "证明；演示",
+          "example": "She demonstrated the new app on stage, and the test results demonstrate that it cuts loading time in half.",
+          "exampleCn": "她在台上演示了这款新应用，测试结果也证明它把加载时间缩短了一半。",
+          "tip": "de-（完全）+ monstr（展示、警示）+ -ate → 完全展示出来。搭配：demonstrate how/that...；demonstrate against（游行示威）。",
+          "clue": "当众操作给人看，或用证据证明某个结论（d 开头，11 个字母）",
+          "synonyms": [
+            "show",
+            "prove"
+          ],
+          "derivatives": [
+            "demonstration"
+          ]
+        },
+        {
+          "word": "distinguish",
+          "phonetic": "/dɪˈstɪŋɡwɪʃ/",
+          "pos": "v.",
+          "meaning": "区分",
+          "example": "Children must learn to distinguish facts from opinions on social media.",
+          "exampleCn": "孩子们必须学会在社交媒体上区分事实与观点。",
+          "tip": "dis-（分开）+ sting（刺，古义「以刺做记号」）→ 把记号分开 → 区分。搭配：distinguish A from B；distinguish between A and B。",
+          "clue": "看出两个事物的不同，把 A 和 B 分辨开来（d 开头，11 个字母）",
+          "synonyms": [
+            "differentiate"
+          ],
+          "derivatives": [
+            "distinct",
+            "distinguished"
+          ]
+        },
+        {
+          "word": "dominate",
+          "phonetic": "/ˈdɒmɪneɪt/",
+          "pos": "v.",
+          "meaning": "支配；占主导",
+          "example": "AI products now dominate the headlines, but no single company can dominate the industry forever.",
+          "exampleCn": "AI 产品如今占据了新闻头条，但没有哪家公司能永远主导这个行业。",
+          "tip": "词根 dom = 家、屋（同根 domain 领域、domestic 家庭的）→ 做一家之主 → 支配。搭配：dominate the market；be dominated by。",
+          "clue": "在市场或行业中占据绝对优势、说了算（d 开头，8 个字母）",
+          "synonyms": [
+            "control",
+            "rule"
+          ],
+          "derivatives": [
+            "dominant",
+            "domination"
+          ]
+        }
+      ],
+      "updatedAt": "2026-09-10T10:13:12+08:00"
+    },
+    {
       "date": "2026-09-09",
       "letter": "C",
       "day": 3,
