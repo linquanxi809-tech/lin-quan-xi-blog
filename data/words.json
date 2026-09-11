@@ -1,6 +1,113 @@
 {
   "entries": [
     {
+      "date": "2026-09-11",
+      "letter": "E",
+      "day": 5,
+      "book": "cet4",
+      "scene": "为了让方案更有说服力，我们先 eliminate 掉报告里的每一处数据错误，enhance 图表的可读性，又 ensure 每个结论都有出处，把美元折算成 equivalent 的人民币金额——几轮打磨下来，一份清晰的终稿终于 emerge。",
+      "words": [
+        {
+          "word": "eliminate",
+          "phonetic": "/ɪˈlɪmɪneɪt/",
+          "pos": "v.",
+          "meaning": "消除；排除（风险、错误）",
+          "example": "We need to eliminate the data errors before sending the report.",
+          "exampleCn": "在发出报告之前，我们需要先消除这些数据错误。",
+          "tip": [
+            "词根：e-（向外）+ limin（门槛）+ -ate → 赶出门槛之外 → 消除",
+            "常见搭配：eliminate the need for（免去…的必要）、eliminate poverty"
+          ],
+          "clue": "把风险或错误彻底赶出大门外、让它们不再存在（e 开头，9 个字母）",
+          "synonyms": [
+            "remove",
+            "abolish"
+          ],
+          "derivatives": [
+            "elimination"
+          ]
+        },
+        {
+          "word": "emerge",
+          "phonetic": "/iˈmɜːdʒ/",
+          "pos": "v.",
+          "meaning": "（从水中、暗处）浮现；露出",
+          "example": "A clear pattern emerged after we compared the two charts.",
+          "exampleCn": "对比两张图表后，一个清晰的规律浮现在我们眼前。",
+          "tip": [
+            "词根：e-（向外）+ merg（沉入）→ 从沉没中浮出来；反义词 submerge（沉没）",
+            "常见搭配：emerge from（从…中出现）、It emerged that…（结果查明…）"
+          ],
+          "clue": "从水里或人群里浮出来、慢慢现身（e 开头，6 个字母）",
+          "synonyms": [
+            "appear"
+          ],
+          "derivatives": [
+            "emergence",
+            "emerging"
+          ]
+        },
+        {
+          "word": "enhance",
+          "phonetic": "/ɪnˈhɑːns/",
+          "pos": "v.",
+          "meaning": "提高（质量、价值、声誉）",
+          "example": "Adding a few charts can greatly enhance the readability of your report.",
+          "exampleCn": "加几张图表就能大幅提升你这份报告的可读性。",
+          "tip": [
+            "词根：en-（使）+ hance（高，同 height 词源）→ 使变高 → 提升",
+            "常见搭配：enhance efficiency（提升效率）、enhance the user experience"
+          ],
+          "clue": "让效率、体验或名声更上一层楼（e 开头，7 个字母）",
+          "synonyms": [
+            "improve",
+            "boost"
+          ],
+          "derivatives": [
+            "enhancement"
+          ]
+        },
+        {
+          "word": "ensure",
+          "phonetic": "/ɪnˈʃʊə(r)/",
+          "pos": "v.",
+          "meaning": "确保；保证（某事一定会发生）",
+          "example": "Please back up the file to ensure nothing is lost.",
+          "exampleCn": "请备份一下文件，以确保不会丢失任何内容。",
+          "tip": [
+            "词根：en-（使）+ sure（确定的）→ 使确定下来 → 确保",
+            "辨析：ensure（确保事情发生）vs assure（向人保证）vs insure（上保险）"
+          ],
+          "clue": "把事情敲定、保证它一定会发生（e 开头，6 个字母）",
+          "synonyms": [
+            "guarantee",
+            "secure"
+          ],
+          "derivatives": []
+        },
+        {
+          "word": "equivalent",
+          "phonetic": "/ɪˈkwɪvələnt/",
+          "pos": "adj./n.",
+          "meaning": "相等的；等值的",
+          "example": "One dollar is roughly equivalent to seven yuan.",
+          "exampleCn": "一美元大约相当于七元人民币。",
+          "tip": [
+            "词根：equi-（相等）+ val（价值）+ -ent → 价值相等 → 等价的",
+            "常见搭配：be equivalent to（等同于）、the equivalent of（…的等价物）"
+          ],
+          "clue": "在价值或意义上可以和另一事物划等号（e 开头，10 个字母）",
+          "synonyms": [
+            "equal"
+          ],
+          "derivatives": [
+            "equivalence"
+          ]
+        }
+      ],
+      "updatedAt": "2026-09-11T14:35:07.957+08:00"
+    },
+    {
       "date": "2026-09-10",
       "letter": "D",
       "day": 4,
